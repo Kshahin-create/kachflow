@@ -1,0 +1,1 @@
+from apps.accounts.permissions import ProjectScopedPermission
