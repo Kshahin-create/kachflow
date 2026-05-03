@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}المستأجرون | KashFlow{% endblock %}
+{% block content %}
+{% if empty_project %}
+  <div class="panel empty">اختر مشروعًا أولًا لعرض المستأجرين.</div>
+{% else %}
+  <div class="dashboard-hero mb-5">
+    <div>
+      <span class="project-status">نخبة تسكين API</span>
+      <h1 class="mt-3 text-3xl font-black">المستأجرون</h1>
+      <p class="mt-2 max-w-2xl text-sm">قائمة المستأجرين المسحوبة من النظام الخارجي، مع ربط بياناتهم بالوحدات المؤجرة داخل المشروع.</p>
+    </div>
+    <form class="flex w-full max-w-md gap-2" method="get">
+      <input class="input mt-0" name="q" value="{{ filters.q }}" placeholder="ابحث بالاسم، الجوال، النشاط أو الشركة">
+      <button class="btn-primary shrink-0" type="submit"><i data-lucide="search"></i> بحث</button>
+    </form>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-4">
+    <div class="kpi stat-card"><span>إجمالي المستأجرين</span><strong>{{ totals.tenants }}</strong></div>
+    <div class="kpi stat-card"><span>وحدات مؤجرة</span><strong>{{ totals.rented_units }}</strong></div>
+    <div class="kpi stat-card"><span>وحدات محجوزة</span><strong>{{ totals.reserved_units }}</strong></div>
+    <div class="kpi stat-card"><span>وحدات عليها بيانات عميل</span><strong>{{ totals.tenant_units }}</strong></div>
+  </div>
+
+  <div class="tenant-grid mt-5">
+    {% for tenant in tenants %}
+      <article class="tenant-card">
+        <div class="tenant-card-head">
+          <span class="tenant-avatar"><i data-lucide="user-round"></i></span>
+          <div class="min-w-0 flex-1">
+            <h2>{{ tenant.name|default:"مستأجر بدون اسم" }}</h2>
+            <p>{{ tenant.company_name|default:"لا يوجد اسم نشاط تجاري" }}</p>
+          </div>
+          {% if tenant.external_id %}<span class="status-pill status-rented">API</span>{% endif %}
+        </div>
+        <div class="tenant-specs">
+          <span><i data-lucide="phone"></i>{{ tenant.phone|default:"لا يوجد رقم" }}</span>
+          <span><i data-lucide="briefcase-business"></i>{{ tenant.activity_type|default:"نشاط غير محدد" }}</span>
+          <span><i data-lucide="calendar-days"></i>{{ tenant.start_date|date:"Y-m-d"|default:"بداية غير محددة" }}</span>
+          <span><i data-lucide="fingerprint"></i>{{ tenant.external_id|default:"محلي" }}</span>
+        </div>
+        {% if tenant.notes %}
+          <p class="tenant-note">{{ tenant.notes }}</p>
+        {% endif %}
+      </article>
+    {% empty %}
+      <div class="panel empty">لا يوجد مستأجرون مطابقون للبحث الحالي.</div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

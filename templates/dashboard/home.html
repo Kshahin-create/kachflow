@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold">لوحة التحكم العامة</h1>
+    <p class="text-sm text-slate-500">نظرة موحدة على كل المشاريع المصرح لك بها.</p>
+  </div>
+  <a class="rounded-md bg-slate-950 px-4 py-2 text-sm text-white" href="{% url 'project_create' %}">مشروع جديد</a>
+</div>
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="kpi"><span>إجمالي الكاش</span><strong>{{ metrics.cash_total }}</strong></div>
+  <div class="kpi"><span>الإيرادات</span><strong>{{ metrics.income_total }}</strong></div>
+  <div class="kpi"><span>المصروفات</span><strong>{{ metrics.expense_total }}</strong></div>
+  <div class="kpi"><span>صافي التدفق</span><strong>{{ metrics.net_cashflow }}</strong></div>
+</div>
+<div class="mt-6 grid gap-4 lg:grid-cols-2">
+  <section class="panel">
+    <h2 class="panel-title">آخر ملفات Excel</h2>
+    {% for upload in metrics.recent_uploads %}<div class="row"><span>{{ upload.original_filename }}</span><span>{{ upload.project.name }}</span></div>{% empty %}<div class="empty">لا توجد ملفات بعد.</div>{% endfor %}
+  </section>
+  <section class="panel">
+    <h2 class="panel-title">آخر المعاملات</h2>
+    {% for txn in metrics.recent_transactions %}<div class="row"><span>{{ txn.description|default:txn.account.name }}</span><span>{{ txn.amount }}</span></div>{% empty %}<div class="empty">لا توجد معاملات بعد.</div>{% endfor %}
+  </section>
+</div>
+{% endblock %}

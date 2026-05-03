@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}داشبورد المدينة الصناعية{% endblock %}
+{% block content %}
+{% if empty_project %}
+  <div class="panel">لا توجد مشاريع متاحة لهذا المستخدم.</div>
+{% else %}
+<div class="space-y-6" x-data x-init="
+  const payload = {{ chart_payload|safe }};
+  const chartDefaults = {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{usePointStyle:true, boxWidth:8}}}};
+  const statusCtx = document.getElementById('statusChart');
+  const buildingCtx = document.getElementById('buildingChart');
+  const activityCtx = document.getElementById('activityChart');
+  if (statusCtx) new Chart(statusCtx, {type:'doughnut', data:{labels:payload.status.labels, datasets:[{data:payload.status.values, backgroundColor:['#0f766e','#2563eb','#cbd5e1'], borderWidth:0}]}, options:{...chartDefaults, cutout:'68%'}});
+  if (buildingCtx) new Chart(buildingCtx, {type:'bar', data:{labels:payload.buildings.labels, datasets:[{label:'الإشغال %', data:payload.buildings.occupancy, backgroundColor:'#0f766e', borderRadius:5}, {label:'الإيجار السنوي', data:payload.buildings.annualRent, type:'line', borderColor:'#b7791f', backgroundColor:'#b7791f', yAxisID:'rent', tension:.35}]}, options:{...chartDefaults, scales:{y:{beginAtZero:true, max:100, grid:{color:'#eef2f7'}}, rent:{position:'left', display:false, beginAtZero:true}}}});
+  if (activityCtx) new Chart(activityCtx, {type:'bar', data:{labels:payload.activity.labels, datasets:[{label:'عدد الوحدات', data:payload.activity.units, backgroundColor:'#134e4a', borderRadius:5}, {label:'الإيجار', data:payload.activity.rent, backgroundColor:'#d97706', borderRadius:5, yAxisID:'rent'}]}, options:{...chartDefaults, scales:{y:{beginAtZero:true}, rent:{position:'left', display:false, beginAtZero:true}}}});
+  if (window.lucide) window.lucide.createIcons();
+">
+  <section class="dashboard-hero">
+    <div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="project-type">نخبة تسكين العقارية</span>
+        <span class="project-status">المستهدف {{ target_rate }}%</span>
+      </div>
+      <h1 class="mt-3 text-3xl font-black text-slate-950">{{ project.name }}</h1>
+      <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">لوحة تشغيل وتأجير تعرض الإشغال، التحصيل، الإيراد، أداء المباني، والبيانات الخام القابلة للتعديل من ملف الإكسل.</p>
+    </div>
+    <form method="get" class="flex min-w-64 flex-wrap items-center gap-2">
+      <select name="project" class="input" onchange="this.form.submit()">
+        {% for item in projects %}
+          <option value="{{ item.id }}" {% if item.id == project.id %}selected{% endif %}>{{ item.name }}</option>
+        {% endfor %}
+      </select>
+      <a class="btn-secondary w-full justify-center sm:w-auto" href="{% url 'nakhba_api_settings' %}">
+        <i data-lucide="plug-zap" class="h-4 w-4"></i>
+        API
+      </a>
+    </form>
+  </section>
+
+  <section class="api-strip">
+    <div>
+      <span>حالة الربط</span>
+      <strong>{{ api_connection.status|default:"غير مهيأ" }}</strong>
+    </div>
+    <div>
+      <span>آخر مزامنة</span>
+      <strong>{{ api_connection.last_sync_at|default:"لم تتم بعد" }}</strong>
+    </div>
+    <a href="{% url 'nakhba_api_settings' %}"><i data-lucide="settings-2"></i> إعدادات API</a>
+  </section>
+
+  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+    <div class="kpi stat-card"><i data-lucide="warehouse"></i><span>إجمالي الوحدات</span><strong>{{ totals.total_units|default:0 }}</strong></div>
+    <div class="kpi stat-card"><i data-lucide="key-round"></i><span>مؤجر</span><strong>{{ rented }}</strong></div>
+    <div class="kpi stat-card"><i data-lucide="bookmark-check"></i><span>محجوز</span><strong>{{ reserved }}</strong></div>
+    <div class="kpi stat-card"><i data-lucide="door-open"></i><span>غير مؤجر</span><strong>{{ vacant }}</strong></div>
+    <div class="kpi stat-card"><i data-lucide="gauge"></i><span>نسبة الإشغال</span><strong>{{ occupancy_rate }}%</strong></div>
+    <div class="kpi stat-card"><i data-lucide="badge-percent"></i><span>معدل التحصيل</span><strong>{{ collection_rate }}%</strong></div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="panel metric-panel"><span>الإيجار السنوي المتوقع</span><strong>{{ totals.expected_rent|floatformat:0 }} ريال</strong></div>
+    <div class="panel metric-panel"><span>المدفوع فعليًا</span><strong>{{ totals.paid_total|floatformat:0 }} ريال</strong></div>
+    <div class="panel metric-panel"><span>المتبقي على المستأجرين</span><strong>{{ totals.remaining_total|floatformat:0 }} ريال</strong></div>
+    <div class="panel metric-panel"><span>متوسط سعر المتر السنوي</span><strong>{{ average_meter_rate }} ريال</strong></div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-12">
+    <div class="panel lg:col-span-8">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 class="panel-title mb-0">الإشغال والإيراد حسب المبنى</h2>
+        <span class="badge">الفجوة {{ target_gap }}%</span>
+      </div>
+      <div class="chart-box"><canvas id="buildingChart"></canvas></div>
+    </div>
+    <div class="panel lg:col-span-4">
+      <h2 class="panel-title">توزيع الحالات</h2>
+      <div class="chart-box chart-box-sm"><canvas id="statusChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-3">
+    <div class="panel">
+      <h2 class="panel-title">أفضل المباني إشغالًا</h2>
+      {% for row in top_buildings %}
+        <div class="ranking-row"><span>{{ row.name }}</span><strong>{{ row.occupancy }}%</strong></div>
+      {% endfor %}
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">مباني تحتاج متابعة</h2>
+      {% for row in attention_buildings %}
+        <div class="ranking-row"><span>{{ row.name }}</span><strong>{{ row.occupancy }}%</strong></div>
+      {% endfor %}
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">الأنشطة</h2>
+      <div class="chart-box chart-box-sm"><canvas id="activityChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 class="panel-title">ملخص المباني</h2>
+    <div class="building-mobile-list">
+      {% for row in building_rows %}
+        <article class="mobile-card">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3>{{ row.name }}</h3>
+              <p>{{ row.activity }}</p>
+            </div>
+            <span class="badge">{{ row.occupancy }}%</span>
+          </div>
+          <div class="mobile-metrics">
+            <span>الوحدات <strong>{{ row.units }}</strong></span>
+            <span>مؤجر <strong>{{ row.rented }}</strong></span>
+            <span>محجوز <strong>{{ row.reserved }}</strong></span>
+            <span>الإيجار <strong>{{ row.annual_rent|floatformat:0 }}</strong></span>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    <div class="desktop-table overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>المبنى</th><th>النشاط</th><th>الوحدات</th><th>مؤجر</th><th>محجوز</th><th>غير مؤجر</th><th>الإشغال</th><th>الإيجار السنوي</th><th>مدفوع</th><th>متبقي</th></tr></thead>
+        <tbody>
+          {% for row in building_rows %}
+            <tr>
+              <td class="font-bold">{{ row.name }}</td><td>{{ row.activity }}</td><td>{{ row.units }}</td><td>{{ row.rented }}</td><td>{{ row.reserved }}</td><td>{{ row.vacant }}</td><td><span class="badge">{{ row.occupancy }}%</span></td><td>{{ row.annual_rent|floatformat:0 }}</td><td>{{ row.paid|floatformat:0 }}</td><td>{{ row.remaining|floatformat:0 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2 class="panel-title mb-1">الوحدات والتأجير</h2>
+        <p class="text-sm text-slate-500">فلترة وتعديل مباشر على كل بيانات الإكسل المستوردة.</p>
+      </div>
+      <form method="get" class="grid gap-3 md:grid-cols-5 lg:min-w-[720px]">
+        <input type="hidden" name="project" value="{{ project.id }}">
+        <input name="q" value="{{ filters.q }}" class="input md:col-span-2" placeholder="بحث بالوحدة أو المستأجر أو الجوال">
+        <select name="building" class="input">
+          <option value="">كل المباني</option>
+          {% for building in buildings %}
+            <option value="{{ building.id }}" {% if filters.building == building.id|stringformat:"s" %}selected{% endif %}>{{ building.name }}</option>
+          {% endfor %}
+        </select>
+        <select name="status" class="input">
+          <option value="">كل الحالات</option>
+          {% for value,label in status_choices %}
+            <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn-primary mt-1" type="submit"><i data-lucide="filter" class="h-4 w-4"></i> فلترة</button>
+      </form>
+    </div>
+    <div class="unit-mobile-list">
+      {% for unit in units %}
+        <article class="mobile-card">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3>وحدة {{ unit.unit_number }}</h3>
+              <p>{{ unit.building.name }} - {{ unit.activity }}</p>
+            </div>
+            <span class="badge">{{ unit.get_status_display }}</span>
+          </div>
+          <div class="mobile-metrics">
+            <span>المساحة <strong>{{ unit.area }}</strong></span>
+            <span>الإيجار <strong>{{ unit.annual_rent|floatformat:0 }}</strong></span>
+            <span>مدفوع <strong>{{ unit.paid_amount|floatformat:0 }}</strong></span>
+            <span>متبقي <strong>{{ unit.remaining_amount|floatformat:0 }}</strong></span>
+          </div>
+          <div class="mt-3 flex items-center justify-between gap-3">
+            <div class="min-w-0 text-sm text-slate-600">
+              <span class="block truncate font-bold text-slate-900">{{ unit.tenant_name|default:"بدون مستأجر" }}</span>
+              <span class="block truncate">{{ unit.phone|default:"لا يوجد رقم" }}</span>
+            </div>
+            <a class="icon-btn" title="تعديل" href="{% url 'industrial_unit_edit' unit.id %}"><i data-lucide="square-pen"></i></a>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty">لا توجد وحدات مطابقة.</div>
+      {% endfor %}
+    </div>
+    <div class="desktop-table overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>المبنى</th><th>الوحدة</th><th>النوع</th><th>المساحة</th><th>النشاط</th><th>المستأجر</th><th>الجوال</th><th>السعر/م²</th><th>الإيجار</th><th>مدفوع</th><th>متبقي</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+          {% for unit in units %}
+            <tr>
+              <td>{{ unit.building.name }}</td><td class="font-bold">{{ unit.unit_number }}</td><td>{{ unit.unit_type }}</td><td>{{ unit.area }}</td><td>{{ unit.activity }}</td><td>{{ unit.tenant_name|default:"-" }}</td><td>{{ unit.phone|default:"-" }}</td><td>{{ unit.rent_per_meter|floatformat:0 }}</td><td>{{ unit.annual_rent|floatformat:0 }}</td><td>{{ unit.paid_amount|floatformat:0 }}</td><td>{{ unit.remaining_amount|floatformat:0 }}</td><td><span class="badge">{{ unit.get_status_display }}</span></td><td><a class="icon-btn" title="تعديل" href="{% url 'industrial_unit_edit' unit.id %}"><i data-lucide="square-pen"></i></a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="13" class="empty">لا توجد وحدات مطابقة.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-2">
+    <div class="panel">
+      <h2 class="panel-title">الاستفسارات والحجوزات</h2>
+      {% for lead in leads %}
+        <div class="row"><span>{{ lead.customer_name }}<small class="block text-slate-500">{{ lead.activity }} - {{ lead.status|default:"بدون حالة" }}</small></span><a class="icon-btn" title="تعديل" href="{% url 'industrial_lead_edit' lead.id %}"><i data-lucide="square-pen"></i></a></div>
+      {% empty %}<div class="empty">لا توجد استفسارات.</div>{% endfor %}
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">قاعدة بيانات العملاء</h2>
+      {% for customer in customers %}
+        <div class="row"><span>{{ customer.customer_name }}<small class="block text-slate-500">{{ customer.required_units }} - {{ customer.relationship_status }}</small></span><a class="icon-btn" title="تعديل" href="{% url 'industrial_customer_edit' customer.id %}"><i data-lucide="square-pen"></i></a></div>
+      {% empty %}<div class="empty">لا توجد بيانات عملاء.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-5 flex items-center justify-between"><h1 class="text-2xl font-bold">المشاريع</h1><a class="btn-primary" href="{% url 'project_create' %}">إضافة مشروع</a></div>
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+{% for project in projects %}
+  <a class="panel block" href="{% url 'project_detail' project.pk %}">
+    <div class="flex items-center justify-between"><h2 class="font-bold">{{ project.name }}</h2><span class="badge">{{ project.get_project_type_display }}</span></div>
+    <p class="mt-2 text-sm text-slate-500">{{ project.company.name }} · {{ project.base_currency }}</p>
+  </a>
+{% empty %}<div class="empty">ابدأ بإنشاء أول مشروع.</div>{% endfor %}
+</div>
+{% endblock %}

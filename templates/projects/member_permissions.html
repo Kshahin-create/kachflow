@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">صلاحيات {{ member.user.username }}</h1>
+<form method="post" class="panel grid gap-3 md:grid-cols-2">{% csrf_token %}
+  <label>الدور<input class="input" name="role" value="{{ member.role }}"></label>
+  <label>داشبورد<input class="input" name="dashboard_access" value="{{ member.dashboard_access }}"></label>
+  <label><input type="checkbox" name="can_view_dashboard" {% if member.can_view_dashboard %}checked{% endif %}> عرض الداشبورد</label>
+  <label><input type="checkbox" name="can_view_financials" {% if member.can_view_financials %}checked{% endif %}> عرض المالية</label>
+  <label><input type="checkbox" name="can_upload_excel" {% if member.can_upload_excel %}checked{% endif %}> رفع Excel</label>
+  <label><input type="checkbox" name="can_import_data" {% if member.can_import_data %}checked{% endif %}> تشغيل Import</label>
+  <label><input type="checkbox" name="can_view_partner_dashboard" {% if member.can_view_partner_dashboard %}checked{% endif %}> داشبورد الشريك</label>
+  <label><input type="checkbox" name="can_manage_users" {% if member.can_manage_users %}checked{% endif %}> إدارة المستخدمين</label>
+  <div class="md:col-span-2"><button class="btn-primary">حفظ</button></div>
+</form>
+{% endblock %}

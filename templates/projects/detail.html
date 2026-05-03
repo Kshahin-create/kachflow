@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="panel">
+  <h1 class="text-2xl font-bold">{{ project.name }}</h1>
+  <p class="mt-2 text-slate-500">{{ project.description|default:"لا يوجد وصف" }}</p>
+  <div class="mt-5 flex flex-wrap gap-2">
+    <a class="btn-primary" href="{% url 'project_dashboard' project.pk %}">داشبورد المشروع</a>
+    <a class="btn-secondary" href="{% url 'partner_dashboard' project.pk %}">داشبورد الشريك</a>
+    <a class="btn-secondary" href="{% url 'project_members' project.pk %}">الأعضاء</a>
+  </div>
+</div>
+{% endblock %}

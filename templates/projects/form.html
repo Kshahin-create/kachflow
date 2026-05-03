@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">إنشاء مشروع</h1>
+<form method="post" class="panel grid gap-4 md:grid-cols-2">
+  {% csrf_token %}
+  <label>اسم المشروع<input class="input" name="name" required></label>
+  <label>الشركة<select class="input" name="company"><option value="">شركة جديدة افتراضية</option>{% for company in companies %}<option value="{{ company.id }}">{{ company.name }}</option>{% endfor %}</select></label>
+  <label>اسم شركة جديدة<input class="input" name="company_name"></label>
+  <label>نوع المشروع<select class="input" name="project_type"><option value="generic">عام</option><option value="ecommerce">متجر إلكتروني</option><option value="real_estate">عقارات</option><option value="ads">إعلانات</option><option value="investment">استثمار</option></select></label>
+  <label>الدولة<input class="input" name="country"></label>
+  <label>العملة<input class="input" name="base_currency" value="SAR"></label>
+  <div class="md:col-span-2"><button class="btn-primary">حفظ</button></div>
+</form>
+{% endblock %}

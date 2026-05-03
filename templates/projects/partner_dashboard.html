@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">داشبورد الشريك - {{ project.name }}</h1>
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="kpi"><span>الإيرادات</span><strong>{{ metrics.income_total }}</strong></div>
+  <div class="kpi"><span>صافي الربح</span><strong>{{ metrics.net_profit }}</strong></div>
+  <div class="kpi"><span>نسبة الملكية</span><strong>{{ metrics.ownership_percentage }}%</strong></div>
+  <div class="kpi"><span>نصيب الأرباح</span><strong>{{ metrics.partner_profit }}</strong></div>
+</div>
+{% endblock %}

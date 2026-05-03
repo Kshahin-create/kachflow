@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">داشبورد {{ project.name }}</h1>
+{% if metrics.limited %}<div class="panel">لا تملك صلاحية عرض المؤشرات المالية.</div>{% else %}
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="kpi"><span>الإيرادات</span><strong>{{ metrics.income_total }}</strong></div>
+  <div class="kpi"><span>المصروفات</span><strong>{{ metrics.expense_total }}</strong></div>
+  <div class="kpi"><span>صافي التدفق</span><strong>{{ metrics.net_cashflow }}</strong></div>
+  <div class="kpi"><span>الحسابات</span><strong>{{ metrics.accounts_count }}</strong></div>
+</div>
+{% endif %}
+{% endblock %}

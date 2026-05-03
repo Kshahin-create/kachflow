@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">Import History</h1>
+<div class="panel overflow-x-auto"><table class="table"><tr><th>المشروع</th><th>القالب</th><th>الحالة</th><th>الصفوف</th><th>ناجح</th><th>فشل</th></tr>{% for batch in batches %}<tr><td>{{ batch.project.name }}</td><td>{{ batch.template.name }}</td><td><span class="badge">{{ batch.status }}</span></td><td>{{ batch.total_rows }}</td><td>{{ batch.imported_rows }}</td><td>{{ batch.failed_rows }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

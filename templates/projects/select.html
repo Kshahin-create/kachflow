@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}اختيار المشروع{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <section class="project-hero">
+    <div>
+      <p class="text-sm font-semibold text-emerald-700">مساحة العمل</p>
+      <h1 class="mt-2 text-3xl font-black text-slate-950">اختر المشروع الذي تريد الدخول إليه</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600">كل مشروع له بياناته وشاشاته وتقاريره المستقلة. اختيار المشروع هنا يحدد بيئة العمل الحالية داخل السيستم.</p>
+    </div>
+    <div class="hidden rounded-lg border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-emerald-900 shadow-sm md:block">
+      {{ projects|length }} مشروع متاح
+    </div>
+  </section>
+
+  {% if projects %}
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {% for project in projects %}
+        <form method="post" class="project-card">
+          {% csrf_token %}
+          <input type="hidden" name="project" value="{{ project.id }}">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="project-type">{{ project.get_project_type_display }}</div>
+              <h2 class="mt-2 text-xl font-extrabold text-slate-950">{{ project.name }}</h2>
+              <p class="mt-2 line-clamp-2 min-h-10 text-sm leading-6 text-slate-600">{{ project.description|default:"بيئة عمل مستقلة لهذا المشروع." }}</p>
+            </div>
+            <span class="project-status">{{ project.get_status_display }}</span>
+          </div>
+          <div class="mt-6 grid grid-cols-2 gap-3 text-sm">
+            <div class="metric-chip"><span>العملة</span><strong>{{ project.base_currency }}</strong></div>
+            <div class="metric-chip"><span>الدولة</span><strong>{{ project.country|default:"SA" }}</strong></div>
+          </div>
+          <button class="btn-primary mt-6 w-full" type="submit">دخول المشروع</button>
+        </form>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="panel text-center">
+      <h2 class="text-xl font-bold">لا توجد مشاريع متاحة</h2>
+      <p class="mt-2 text-sm text-slate-500">استورد ملف المشروع أو أنشئ مشروعًا جديدًا للبدء.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

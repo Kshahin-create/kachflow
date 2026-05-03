@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}وحدات المدينة الصناعية{% endblock %}
+{% block content %}
+{% if empty_project %}
+  <div class="panel">لا توجد مشاريع متاحة.</div>
+{% else %}
+<div class="space-y-6">
+  <section class="dashboard-hero">
+    <div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="project-type">وحدات API</span>
+        <span class="project-status">{{ totals.count|default:0 }} وحدة</span>
+      </div>
+      <h1 class="mt-3 text-3xl font-black text-slate-950">وحدات {{ project.name }}</h1>
+      <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">كل الوحدات المسحوبة من نظام نخبة تسكين، مع فلترة حسب المبنى والحالة والنشاط وبحث مباشر بالوحدة أو المستأجر.</p>
+    </div>
+    <a class="btn-secondary" href="{% url 'nakhba_api_settings' %}"><i data-lucide="plug-zap" class="h-4 w-4"></i> إعداد API</a>
+  </section>
+
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="panel metric-panel"><span>عدد الوحدات</span><strong>{{ totals.count|default:0 }}</strong></div>
+    <div class="panel metric-panel"><span>إجمالي الإيجار</span><strong>{{ totals.rent|floatformat:0 }} ريال</strong></div>
+    <div class="panel metric-panel"><span>إجمالي المساحة</span><strong>{{ totals.area|floatformat:0 }} م²</strong></div>
+  </div>
+
+  <form method="get" class="filter-bar">
+    <input name="q" value="{{ filters.q }}" class="input" placeholder="بحث بالوحدة أو المستأجر أو الجوال">
+    <select name="building" class="input">
+      <option value="">كل المباني</option>
+      {% for building in buildings %}
+        <option value="{{ building.id }}" {% if filters.building == building.id|stringformat:"s" %}selected{% endif %}>{{ building.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" class="input">
+      <option value="">كل الحالات</option>
+      {% for value,label in status_choices %}
+        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select name="activity" class="input">
+      <option value="">كل الأنشطة</option>
+      {% for item in activities %}
+        <option value="{{ item }}" {% if filters.activity == item %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn-primary" type="submit"><i data-lucide="filter" class="h-4 w-4"></i> فلترة</button>
+  </form>
+
+  <div class="unit-catalog">
+    {% for unit in units %}
+      <article class="unit-card">
+        <div class="unit-card-head">
+          <div>
+            <span>{{ unit.building.name }}</span>
+            <h2>وحدة {{ unit.unit_number }}</h2>
+          </div>
+          <span class="status-pill status-{{ unit.status }}">{{ unit.get_status_display }}</span>
+        </div>
+        <p class="unit-activity">{{ unit.activity|default:"نشاط غير محدد" }}</p>
+        <div class="unit-specs">
+          <span><i data-lucide="scan"></i> {{ unit.area }} م²</span>
+          <span><i data-lucide="store"></i> {{ unit.unit_type|default:"-" }}</span>
+          <span><i data-lucide="banknote"></i> {{ unit.annual_rent|floatformat:0 }} ريال</span>
+          <span><i data-lucide="ruler"></i> {{ unit.rent_per_meter|floatformat:0 }} / م²</span>
+        </div>
+        <div class="unit-tenant">
+          <div>
+            <span>المستأجر</span>
+            <strong>{{ unit.tenant_name|default:"متاحة للتأجير" }}</strong>
+            <small>{{ unit.phone|default:"لا يوجد رقم" }}</small>
+          </div>
+          <a class="icon-btn" title="تعديل" href="{% url 'industrial_unit_edit' unit.id %}"><i data-lucide="square-pen"></i></a>
+        </div>
+      </article>
+    {% empty %}
+      <div class="panel empty">لا توجد وحدات مطابقة للفلاتر الحالية.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

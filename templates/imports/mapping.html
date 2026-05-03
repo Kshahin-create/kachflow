@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">Mapping - {{ sheet.sheet_name }}</h1>
+<form method="post" class="panel space-y-4">{% csrf_token %}
+  <div class="grid gap-4 md:grid-cols-2">
+    <label>اسم القالب<input class="input" name="name" value="{{ uploaded.project.name }} - {{ sheet.sheet_name }}"></label>
+    <label>نوع الاستيراد<select class="input" name="target_type"><option value="generic_dataset">Generic Dataset</option><option value="transactions">Transactions</option><option value="accounts">Accounts</option></select></label>
+  </div>
+  <div class="overflow-x-auto"><table class="table"><tr><th>عمود Excel</th><th>حقل النظام</th></tr>{% for col in sheet.detected_columns %}<tr><td>{{ col }}</td><td><input class="input" name="map_{{ col }}" placeholder="مثال: date / amount / description"></td></tr>{% endfor %}</table></div>
+  <button class="btn-primary">حفظ وتشغيل Import</button>
+</form>
+{% endblock %}

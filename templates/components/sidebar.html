@@ -1,0 +1,75 @@
+<div class="sidebar-inner flex h-full flex-col">
+  <div class="sidebar-head">
+    <div class="flex min-w-0 items-center gap-2">
+      <span class="brand-mark"><i data-lucide="blocks"></i></span>
+      <div class="sidebar-label min-w-0">
+        <div class="truncate text-xl font-black text-slate-950">KashFlow</div>
+        <div class="truncate text-xs text-slate-500">بيئات مشاريع مستقلة</div>
+      </div>
+    </div>
+    <button class="sidebar-toggle hidden lg:inline-flex" type="button" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'فتح القائمة' : 'طي القائمة'">
+      <i data-lucide="panel-right"></i>
+    </button>
+  </div>
+
+  {% if current_project %}
+    <div class="sidebar-project">
+      <div class="flex items-center gap-2 text-[11px] font-bold text-emerald-700">
+        <i data-lucide="folder-kanban" class="h-3.5 w-3.5"></i>
+        <span class="sidebar-label">المشروع الحالي</span>
+      </div>
+      <div class="sidebar-label mt-1 truncate text-sm font-black text-emerald-950">{{ current_project.name }}</div>
+      <a class="sidebar-label mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-800" href="{% url 'project_select' %}">
+        <i data-lucide="repeat-2" class="h-3.5 w-3.5"></i>
+        تغيير المشروع
+      </a>
+    </div>
+  {% endif %}
+
+  <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm">
+    <div>
+      <div class="nav-group-title">عام</div>
+      <a class="nav-link" href="{% url 'project_select' %}" title="اختيار المشروع"><i data-lucide="layout-list"></i><span>اختيار المشروع</span></a>
+      <a class="nav-link" href="{% url 'import_upload' %}" title="استيراد Excel"><i data-lucide="file-spreadsheet"></i><span>استيراد Excel</span></a>
+      <a class="nav-link" href="{% url 'reports' %}" title="التقارير"><i data-lucide="file-bar-chart"></i><span>التقارير</span></a>
+    </div>
+
+    {% if current_project %}
+      <div>
+        <div class="nav-group-title">بيئة المشروع</div>
+        {% if current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
+          <a class="nav-link" href="{% url 'real_estate_dashboard' %}" title="داشبورد التشغيل"><i data-lucide="layout-dashboard"></i><span>داشبورد التشغيل</span></a>
+          <a class="nav-link" href="{% url 'real_estate_properties' %}" title="المباني"><i data-lucide="building-2"></i><span>المباني</span></a>
+          <a class="nav-link" href="{% url 'real_estate_units' %}" title="الوحدات"><i data-lucide="warehouse"></i><span>الوحدات</span></a>
+          <a class="nav-link" href="{% url 'real_estate_tenants' %}" title="المستأجرون"><i data-lucide="users-round"></i><span>المستأجرون</span></a>
+          <a class="nav-link" href="{% url 'real_estate_leases' %}" title="العقود"><i data-lucide="file-signature"></i><span>العقود</span></a>
+          <a class="nav-link" href="{% url 'real_estate_collections' %}" title="التحصيلات"><i data-lucide="receipt"></i><span>التحصيلات</span></a>
+          <a class="nav-link" href="{% url 'real_estate_installments' %}" title="الأقساط"><i data-lucide="calendar-clock"></i><span>الأقساط</span></a>
+          <a class="nav-link" href="{% url 'nakhba_api_settings' %}" title="ربط نخبة API"><i data-lucide="plug-zap"></i><span>ربط نخبة API</span></a>
+        {% elif current_project.project_type == "ecommerce" %}
+          <a class="nav-link" href="{% url 'ecommerce_dashboard' %}" title="داشبورد المتجر"><i data-lucide="layout-dashboard"></i><span>داشبورد المتجر</span></a>
+          <a class="nav-link" href="{% url 'ecommerce_orders' %}" title="الطلبات"><i data-lucide="shopping-bag"></i><span>الطلبات</span></a>
+          <a class="nav-link" href="{% url 'ecommerce_products' %}" title="المنتجات"><i data-lucide="package"></i><span>المنتجات</span></a>
+          <a class="nav-link" href="{% url 'ecommerce_customers' %}" title="العملاء"><i data-lucide="users-round"></i><span>العملاء</span></a>
+        {% elif current_project.project_type == "ads" %}
+          <a class="nav-link" href="{% url 'ads_dashboard' %}" title="داشبورد الإعلانات"><i data-lucide="layout-dashboard"></i><span>داشبورد الإعلانات</span></a>
+          <a class="nav-link" href="{% url 'ads_campaigns' %}" title="الحملات"><i data-lucide="megaphone"></i><span>الحملات</span></a>
+          <a class="nav-link" href="{% url 'ads_performance' %}" title="الأداء"><i data-lucide="trending-up"></i><span>الأداء</span></a>
+        {% elif current_project.project_type == "investment" %}
+          <a class="nav-link" href="{% url 'investments_dashboard' %}" title="داشبورد الاستثمار"><i data-lucide="layout-dashboard"></i><span>داشبورد الاستثمار</span></a>
+          <a class="nav-link" href="{% url 'investments_assets' %}" title="الأصول"><i data-lucide="landmark"></i><span>الأصول</span></a>
+        {% else %}
+          <a class="nav-link" href="{% url 'project_dashboard' current_project.id %}" title="داشبورد المشروع"><i data-lucide="layout-dashboard"></i><span>داشبورد المشروع</span></a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div>
+      <div class="nav-group-title">الماليات والإدارة</div>
+      <a class="nav-link" href="{% url 'finance_accounts' %}" title="الحسابات"><i data-lucide="wallet-cards"></i><span>الحسابات</span></a>
+      <a class="nav-link" href="{% url 'finance_transactions' %}" title="المعاملات"><i data-lucide="arrow-left-right"></i><span>المعاملات</span></a>
+      <a class="nav-link" href="{% url 'finance_cashflow' %}" title="التدفق النقدي"><i data-lucide="activity"></i><span>التدفق النقدي</span></a>
+      <a class="nav-link" href="{% url 'audit_log' %}" title="سجل النشاط"><i data-lucide="shield-check"></i><span>سجل النشاط</span></a>
+    </div>
+  </nav>
+</div>

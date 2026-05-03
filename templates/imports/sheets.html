@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">الشيتات: {{ uploaded.original_filename }}</h1>
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{% for sheet in sheets %}
+  <div class="panel">
+    <h2 class="font-bold">{{ sheet.sheet_name }}</h2>
+    <p class="text-sm text-slate-500">{{ sheet.row_count }} صف · {{ sheet.column_count }} عمود</p>
+    <div class="mt-4 flex gap-2"><a class="btn-secondary" href="{% url 'import_preview' uploaded.pk sheet.sheet_name %}">Preview</a><a class="btn-primary" href="{% url 'import_mapping' uploaded.pk sheet.sheet_name %}">Mapping</a></div>
+  </div>
+{% endfor %}</div>
+{% endblock %}

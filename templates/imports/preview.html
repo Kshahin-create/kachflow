@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load import_extras %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">Preview - {{ sheet.sheet_name }}</h1>
+<div class="panel overflow-x-auto">
+  <table class="table">
+    <tr>{% for col in sheet.detected_columns %}<th>{{ col }}</th>{% endfor %}</tr>
+    {% for row in sheet.preview_data %}<tr>{% for col in sheet.detected_columns %}<td>{{ row|get_item:col }}</td>{% endfor %}</tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

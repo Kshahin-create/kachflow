@@ -1,0 +1,32 @@
+<header class="topbar">
+  <div class="flex h-full items-center gap-3 px-4 sm:px-6 lg:px-8">
+    <button class="icon-btn lg:hidden" @click="drawer=true" aria-label="القائمة">
+      <i data-lucide="menu"></i>
+    </button>
+
+    <div class="min-w-0 flex-1">
+      {% if current_project %}
+        <div class="truncate text-xs font-bold text-emerald-700">المشروع الحالي</div>
+        <div class="truncate text-sm font-black text-slate-950 sm:text-base">{{ current_project.name }}</div>
+      {% else %}
+        <div class="text-sm font-black text-slate-950">KashFlow</div>
+        <div class="text-xs font-bold text-slate-500">اختر مشروعًا للبدء</div>
+      {% endif %}
+    </div>
+
+    <div class="topbar-search hidden md:flex">
+      <i data-lucide="search"></i>
+      <input placeholder="بحث سريع">
+    </div>
+
+    <a class="btn-secondary hidden sm:inline-flex" href="{% url 'project_select' %}">
+      <i data-lucide="repeat-2" class="h-4 w-4"></i>
+      تغيير المشروع
+    </a>
+
+    <div class="user-pill">
+      <i data-lucide="user-round"></i>
+      <span>{{ request.user.username }}</span>
+    </div>
+  </div>
+</header>

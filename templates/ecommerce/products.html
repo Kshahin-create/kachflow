@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">المنتجات</h1><div class="panel">{% for p in products %}<div class="row"><span>{{ p.name }}</span><span>{{ p.selling_price }}</span></div>{% endfor %}</div>{% endblock %}

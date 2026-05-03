@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">أعضاء {{ project.name }}</h1>
+<div class="panel overflow-x-auto"><table class="table"><tr><th>المستخدم</th><th>الدور</th><th>الصلاحيات</th></tr>{% for member in members %}<tr><td>{{ member.user.username }}</td><td>{{ member.role }}</td><td><a class="text-blue-700" href="{% url 'member_permissions' project.pk member.pk %}">تعديل</a></td></tr>{% endfor %}</table></div>
+{% endblock %}

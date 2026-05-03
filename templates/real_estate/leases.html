@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">العقود</h1><div class="panel">{% for item in leases %}<div class="row"><span>{{ item.tenant.name }}</span><span>{{ item.annual_rent }}</span></div>{% endfor %}</div>{% endblock %}

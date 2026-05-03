@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">التصنيفات</h1><div class="panel">{% for c in categories %}<div class="row"><span>{{ c.name }}</span><span>{{ c.type }}</span></div>{% empty %}<div class="empty">لا توجد تصنيفات.</div>{% endfor %}</div>{% endblock %}

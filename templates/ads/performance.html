@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">أداء الإعلانات</h1><div class="panel">{% for m in metrics %}<div class="row"><span>{{ m.date }}</span><span>{{ m.spend }}</span></div>{% endfor %}</div>{% endblock %}

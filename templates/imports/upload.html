@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">رفع ملف Excel</h1>
+<form method="post" enctype="multipart/form-data" class="panel space-y-4">
+  {% csrf_token %}
+  <label>المشروع<select class="input" name="project" required>{% for project in projects %}<option value="{{ project.id }}">{{ project.name }}</option>{% endfor %}</select></label>
+  <label class="block rounded-md border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+    <span class="block text-sm text-slate-600">اختر ملف Excel</span>
+    <input class="mt-3" type="file" name="file" accept=".xlsx,.xls" required>
+  </label>
+  <button class="btn-primary">رفع وتحليل</button>
+</form>
+{% endblock %}

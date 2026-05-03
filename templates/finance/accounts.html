@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">الحسابات المالية</h1>
+<div class="panel overflow-x-auto"><table class="table"><tr><th>الاسم</th><th>المشروع</th><th>النوع</th><th>الرصيد</th><th>العملة</th></tr>{% for account in accounts %}<tr><td>{{ account.name }}</td><td>{{ account.project.name }}</td><td>{{ account.account_type }}</td><td>{{ account.current_balance }}</td><td>{{ account.currency }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

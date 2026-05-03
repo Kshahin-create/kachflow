@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">العملاء</h1><div class="panel">{% for c in customers %}<div class="row"><span>{{ c.name }}</span><span>{{ c.total_spent }}</span></div>{% endfor %}</div>{% endblock %}

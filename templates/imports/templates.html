@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">Import Templates</h1>
+<div class="panel overflow-x-auto"><table class="table"><tr><th>القالب</th><th>المشروع</th><th>الشيت</th><th>الهدف</th></tr>{% for template in templates %}<tr><td>{{ template.name }}</td><td>{{ template.project.name }}</td><td>{{ template.sheet_name }}</td><td>{{ template.target_type }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

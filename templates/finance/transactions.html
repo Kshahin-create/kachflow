@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-5 text-2xl font-bold">المعاملات</h1>
+<div class="panel overflow-x-auto"><table class="table"><tr><th>التاريخ</th><th>المشروع</th><th>الحساب</th><th>النوع</th><th>المبلغ</th></tr>{% for txn in transactions %}<tr><td>{{ txn.date }}</td><td>{{ txn.project.name }}</td><td>{{ txn.account.name }}</td><td>{{ txn.transaction_type }}</td><td>{{ txn.amount }}</td></tr>{% endfor %}</table></div>
+{% endblock %}
