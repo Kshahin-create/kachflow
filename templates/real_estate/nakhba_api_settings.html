@@ -3,77 +3,190 @@
 {% block content %}
 <div class="space-y-6">
   <section class="dashboard-hero">
-    <div>
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="project-type">REST API</span>
-        <span class="project-status">{{ connection.get_status_display|default:connection.status }}</span>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-3">
+          <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+            Nakhba Integration
+          </span>
+          <span class="rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/30">
+            REST API v2.0
+          </span>
+        </div>
+        <h1 class="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">
+          إعدادات الربط التقني
+        </h1>
+        <p class="mt-4 text-lg font-medium text-slate-400 leading-relaxed">
+          قم بتهيئة الاتصال بنظام "نخبة تسكين" الخارجي لجلب بيانات المباني، الوحدات، والمستأجرين بشكل آلي ولحظي.
+        </p>
       </div>
-      <h1 class="mt-3 text-3xl font-black text-slate-950">ربط نخبة تسكين العقارية</h1>
-      <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">اربط مشروع {{ project.name }} بواجهة Supabase REST API لسحب المباني والوحدات والإحصائيات مباشرة داخل السيستم.</p>
+      
+      <div class="shrink-0 flex items-center gap-3">
+        <div class="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-400 backdrop-blur-md">
+          <i data-lucide="plug-zap" class="h-8 w-8"></i>
+        </div>
+      </div>
     </div>
   </section>
 
-  <div class="grid gap-4 lg:grid-cols-[1fr_.8fr]">
-    <form method="post" class="panel space-y-4">
+  <div class="grid gap-6 lg:grid-cols-[1fr_.4fr]">
+    <form method="post" class="panel p-8 space-y-6">
       {% csrf_token %}
       <input type="hidden" name="action" value="save">
-      <h2 class="panel-title">إعداد الاتصال</h2>
-      <label class="block">
-        <span class="text-sm font-bold text-slate-700">اسم الربط</span>
-        <input class="input" name="name" value="{{ connection.name }}">
-      </label>
-      <label class="block">
-        <span class="text-sm font-bold text-slate-700">Base URL</span>
-        <input class="input ltr-input" name="base_url" value="{{ base_url }}" dir="ltr">
-      </label>
-      <label class="block">
-        <span class="text-sm font-bold text-slate-700">X-API-Key</span>
-        <input class="input ltr-input" name="api_key" type="password" placeholder="{% if masked_api_key %}محفوظ: {{ masked_api_key }}{% else %}nkb_live_xxxxxxxxxxxxxxxxxx{% endif %}" dir="ltr">
-      </label>
-      <div class="flex flex-wrap items-center gap-2">
-        <button class="btn-primary" type="submit"><i data-lucide="save" class="h-4 w-4"></i> حفظ الإعدادات</button>
-        <a class="btn-secondary" href="{% url 'real_estate_dashboard' %}"><i data-lucide="layout-dashboard" class="h-4 w-4"></i> الداشبورد</a>
+      <div class="flex items-center justify-between">
+        <h2 class="panel-title mb-0">
+          <i data-lucide="settings-2" class="h-5 w-5 text-emerald-600"></i>
+          بيانات الاعتماد (Credentials)
+        </h2>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">اسم الاتصال</label>
+          <input class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all" name="name" value="{{ connection.name }}" placeholder="مثلاً: ربط المدينة الصناعية">
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">مزود الخدمة</label>
+          <div class="w-full rounded-xl border border-slate-100 bg-slate-100 px-4 py-3 text-sm font-bold text-slate-500">
+            Nakhba Taskin (Supabase)
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">رابط الواجهة (Base URL)</label>
+        <div class="relative">
+          <i data-lucide="link" class="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+          <input class="w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-12 py-3 text-sm font-medium ltr-input outline-none focus:border-emerald-500 focus:bg-white transition-all" name="base_url" value="{{ base_url }}" dir="ltr">
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">مفتاح الوصول (X-API-Key)</label>
+        <div class="relative">
+          <i data-lucide="shield-check" class="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+          <input class="w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-12 py-3 text-sm font-medium ltr-input outline-none focus:border-emerald-500 focus:bg-white transition-all" name="api_key" type="password" placeholder="{% if masked_api_key %}محفوظ: {{ masked_api_key }}{% else %}nkb_live_xxxxxxxxxxxxxxxxxx{% endif %}" dir="ltr">
+        </div>
+      </div>
+
+      <div class="pt-4 flex items-center gap-3">
+        <button class="flex items-center gap-2 rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-black text-white hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10" type="submit">
+          <i data-lucide="save" class="h-4 w-4 text-amber-400"></i>
+          حفظ التغييرات
+        </button>
+        <a class="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-6 py-3.5 text-sm font-black text-slate-600 hover:bg-slate-50 transition-all" href="{% url 'real_estate_dashboard' %}">
+          إلغاء
+        </a>
       </div>
     </form>
 
-    <div class="panel">
-      <h2 class="panel-title">حالة الربط</h2>
-      <div class="space-y-3 text-sm">
-        <div class="metric-chip"><span>Provider</span><strong>nakhba_taskin</strong></div>
-        <div class="metric-chip"><span>آخر مزامنة</span><strong>{{ connection.last_sync_at|default:"لم تتم بعد" }}</strong></div>
-        <div class="metric-chip"><span>المفتاح</span><strong>{{ masked_api_key|default:"غير مسجل" }}</strong></div>
+    <div class="space-y-6">
+      <div class="panel p-6">
+        <h2 class="panel-title">
+          <i data-lucide="activity" class="h-5 w-5 text-emerald-600"></i>
+          حالة النظام
+        </h2>
+        <div class="space-y-4 mt-6">
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-[10px] font-black text-slate-400 uppercase">الحالة</span>
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-600 border border-emerald-100 uppercase">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              {{ connection.get_status_display|default:"نشط" }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <span class="text-[10px] font-black text-slate-400 uppercase">آخر مزامنة</span>
+            <strong class="text-xs font-black text-slate-900">{{ connection.last_sync_at|date:"Y-m-d H:i"|default:"-" }}</strong>
+          </div>
+        </div>
+        
+        <form method="post" class="mt-8">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="sync">
+          <button class="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-4 text-sm font-black text-white hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20" type="submit">
+            <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+            بدء مزامنة فورية
+          </button>
+        </form>
       </div>
-      <form method="post" class="mt-5">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="sync">
-        <button class="btn-primary w-full" type="submit"><i data-lucide="refresh-cw" class="h-4 w-4"></i> مزامنة الآن</button>
-      </form>
+
+      <div class="panel p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100">
+        <h3 class="text-xs font-black text-amber-800 uppercase tracking-widest flex items-center gap-2">
+          <i data-lucide="info" class="h-4 w-4"></i>
+          تعليمات الأمان
+        </h3>
+        <p class="mt-3 text-xs font-bold text-amber-700/80 leading-relaxed">
+          يتم تشفير مفاتيح الـ API قبل تخزينها. تأكد من عدم مشاركة رابط الـ Base URL مع أي جهة غير مخولة.
+        </p>
+      </div>
     </div>
   </div>
 
-  <section class="panel">
-    <h2 class="panel-title">سجل المزامنة</h2>
-    <div class="desktop-table overflow-x-auto">
-      <table class="table">
-        <thead><tr><th>الحالة</th><th>بدأت</th><th>انتهت</th><th>Fetched</th><th>Created</th><th>Updated</th><th>الخطأ</th></tr></thead>
-        <tbody>
+  <section class="panel p-8">
+    <div class="mb-8 flex items-center justify-between">
+      <h2 class="panel-title mb-0">
+        <i data-lucide="history" class="h-5 w-5 text-emerald-600"></i>
+        سجل العمليات (Sync Logs)
+      </h2>
+      <span class="text-[10px] font-black text-slate-400 uppercase">آخر 20 عملية</span>
+    </div>
+
+    <div class="desktop-table overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50">
+            <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">الحالة</th>
+            <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">وقت البدء</th>
+            <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">المدة</th>
+            <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-center">البيانات</th>
+            <th class="p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">التفاصيل</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
           {% for log in sync_logs %}
-            <tr><td><span class="badge">{{ log.status }}</span></td><td>{{ log.started_at }}</td><td>{{ log.finished_at|default:"-" }}</td><td>{{ log.records_fetched }}</td><td>{{ log.records_created }}</td><td>{{ log.records_updated }}</td><td>{{ log.error_message|default:"-" }}</td></tr>
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="p-4">
+                <span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest border {% if log.status == 'success' %}bg-emerald-50 text-emerald-600 border-emerald-100{% else %}bg-rose-50 text-rose-600 border-rose-100{% endif %}">
+                  {{ log.status }}
+                </span>
+              </td>
+              <td class="p-4 text-xs font-black text-slate-900">{{ log.started_at|date:"Y-m-d H:i:s" }}</td>
+              <td class="p-4 text-xs font-bold text-slate-400">{{ log.finished_at|default:"-" }}</td>
+              <td class="p-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-black text-slate-600" title="Fetched">{{ log.records_fetched }}</span>
+                  <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-[10px] font-black text-emerald-700" title="Created">{{ log.records_created }}</span>
+                  <span class="px-2 py-0.5 rounded-md bg-amber-100 text-[10px] font-black text-amber-700" title="Updated">{{ log.records_updated }}</span>
+                </div>
+              </td>
+              <td class="p-4 text-xs font-medium text-slate-500 max-w-xs truncate">
+                {{ log.error_message|default:"تمت العملية بنجاح" }}
+              </td>
+            </tr>
           {% empty %}
-            <tr><td class="empty" colspan="7">لا توجد مزامنات حتى الآن.</td></tr>
+            <tr><td colspan="5" class="p-12 text-center text-sm font-bold text-slate-400">لا توجد عمليات مزامنة مسجلة.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <div class="unit-mobile-list">
+
+    <div class="unit-mobile-list grid gap-4 mt-4">
       {% for log in sync_logs %}
-        <article class="mobile-card">
-          <div class="flex items-center justify-between"><strong>{{ log.status }}</strong><span class="badge">{{ log.records_fetched }} سجل</span></div>
-          <p>{{ log.started_at }}</p>
-          {% if log.error_message %}<p class="text-rose-700">{{ log.error_message }}</p>{% endif %}
+        <article class="panel p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black text-slate-900">{{ log.started_at|date:"H:i:s" }}</span>
+            <span class="rounded-full px-2 py-0.5 text-[10px] font-black uppercase border {% if log.status == 'success' %}bg-emerald-50 text-emerald-600 border-emerald-100{% else %}bg-rose-50 text-rose-600 border-rose-100{% endif %}">
+              {{ log.status }}
+            </span>
+          </div>
+          <div class="mt-4 flex items-center gap-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">السجلات:</span>
+            <strong class="text-xs font-black text-slate-900">{{ log.records_fetched }}</strong>
+          </div>
+          {% if log.error_message %}
+            <p class="mt-3 text-[10px] font-medium text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100">{{ log.error_message }}</p>
+          {% endif %}
         </article>
-      {% empty %}
-        <div class="empty">لا توجد مزامنات حتى الآن.</div>
       {% endfor %}
     </div>
   </section>

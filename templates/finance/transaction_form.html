@@ -1,1 +1,126 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">إضافة معاملة</h1><div class="panel">نموذج المعاملات جاهز للتوسعة عبر API.</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8 flex items-center gap-4">
+    <a href="{% url 'finance_transactions' %}" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm">
+        <i data-lucide="chevron-right" class="h-5 w-5"></i>
+    </a>
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">{% if is_edit %}تعديل المعاملة{% else %}إضافة معاملة جديدة{% endif %}</h1>
+        <p class="text-sm font-medium text-slate-500">قم بتعبئة البيانات المالية أدناه</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2">
+        <div class="panel p-6 sm:p-8 bg-white shadow-xl shadow-slate-200/50 border border-slate-100 rounded-2xl">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 px-1">التاريخ</label>
+                        {{ form.date }}
+                        {% if form.date.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.date.errors.0 }}</p>{% endif %}
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 px-1">المشروع</label>
+                        {{ form.project }}
+                        {% if form.project.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.project.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 px-1">الحساب المالي</label>
+                        {{ form.account }}
+                        {% if form.account.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.account.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 px-1">التصنيف</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.category.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 px-1">نوع المعاملة</label>
+                        {{ form.transaction_type }}
+                        {% if form.transaction_type.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.transaction_type.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-slate-700 px-1">المبلغ</label>
+                        <div class="relative">
+                            {{ form.amount }}
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                                <span class="text-xs font-bold text-slate-400">SAR</span>
+                            </div>
+                        </div>
+                        {% if form.amount.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.amount.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 px-1">الوصف</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.description.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 px-1">المورد / الملاحظات</label>
+                    {{ form.supplier }}
+                    {% if form.supplier.errors %}<p class="text-xs text-rose-500 font-bold">{{ form.supplier.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="pt-4 flex items-center gap-3">
+                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all">
+                        <i data-lucide="check" class="h-4 w-4"></i>
+                        {% if is_edit %}تحديث المعاملة{% else %}حفظ المعاملة{% endif %}
+                    </button>
+                    <a href="{% url 'finance_transactions' %}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="lg:col-span-1 space-y-6">
+        <div class="panel p-6 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-2xl shadow-xl shadow-emerald-200">
+            <h3 class="text-lg font-bold mb-2 flex items-center gap-2">
+                <i data-lucide="info" class="h-5 w-5"></i>
+                نصائح سريعة
+            </h3>
+            <ul class="space-y-3 text-sm font-medium text-emerald-50/80">
+                <li class="flex gap-2">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-300 mt-1.5 flex-shrink-0"></span>
+                    تأكد من اختيار الحساب المالي الصحيح لتتبع دقيق للأرصدة.
+                </li>
+                <li class="flex gap-2">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-300 mt-1.5 flex-shrink-0"></span>
+                    استخدم الوصف لتوضيح تفاصيل العملية لتسهيل المراجعة مستقبلاً.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-input, .form-select {
+        @apply w-full rounded-xl border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10;
+    }
+    input, select, textarea {
+        width: 100%;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        background-color: rgba(248, 250, 252, 0.5);
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+</style>
+{% endblock %}

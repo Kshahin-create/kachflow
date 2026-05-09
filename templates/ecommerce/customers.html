@@ -1,1 +1,94 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">العملاء</h1><div class="panel">{% for c in customers %}<div class="row"><span>{{ c.name }}</span><span>{{ c.total_spent }}</span></div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}عملاء المتجر{% endblock %}
+{% block content %}
+<div class="space-y-6 pb-10">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-black tracking-tight">العملاء</h1>
+      <p class="text-sm text-slate-500 mt-1 flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+        قاعدة بيانات العملاء المسجلين من Wuilt والمدخلات اليدوية.
+      </p>
+    </div>
+  </div>
+
+  <!-- Customers Table Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table w-full border-collapse">
+        <thead>
+          <tr class="text-slate-400 text-xs uppercase tracking-wider bg-slate-50/50">
+            <th class="px-6 py-4 text-right font-bold">العميل</th>
+            <th class="px-6 py-4 text-right font-bold">الاتصال</th>
+            <th class="px-6 py-4 text-center font-bold">الموقع</th>
+            <th class="px-6 py-4 text-left font-bold">إجمالي الإنفاق</th>
+            <th class="px-6 py-4 text-center font-bold">الطلبات</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for c in customers %}
+          <tr class="hover:bg-slate-50 transition-all group cursor-pointer" onclick="window.location='{% url 'ecommerce_customer_detail' c.id %}'">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold group-hover:bg-primary group-hover:text-white transition-colors uppercase">
+                  {{ c.name|slice:":1" }}
+                </div>
+                <div>
+                  <div class="font-black text-slate-700">{{ c.name }}</div>
+                  <div class="flex items-center gap-2 mt-1">
+                    {% if c.is_verified %}
+                    <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[8px] font-black uppercase border border-blue-100 flex items-center gap-0.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-2 w-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                      موثق
+                    </span>
+                    {% endif %}
+                    <div class="text-[10px] text-slate-400 font-mono">{{ c.external_id|truncatechars:15 }}</div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm font-medium text-slate-600 flex flex-col gap-1">
+                <span class="flex items-center gap-1" dir="ltr">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  {{ c.phone|default:"-" }}
+                </span>
+                <span class="flex items-center gap-1 text-xs text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  {{ c.email|default:"-" }}
+                </span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="text-sm font-medium text-slate-600">{{ c.city|default:"-" }}</div>
+              <div class="text-[10px] text-slate-400 uppercase">{{ c.country|default:"-" }}</div>
+            </td>
+            <td class="px-6 py-4 text-left">
+              <div class="font-black text-slate-900">{{ c.total_spent|default:"0.00" }}</div>
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ project.base_currency }}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-black text-xs">
+                {{ c.total_orders|default:"0" }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                </div>
+                <h3 class="text-slate-400 font-bold">لا يوجد عملاء مسجلين حالياً</h3>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

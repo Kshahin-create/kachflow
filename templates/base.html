@@ -10,44 +10,88 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=command-redesign-3">
+  {% if load_charts %}
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  {% endif %}
+  <script defer src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v=sidebar-contrast-1">
 </head>
 <body class="bg-slate-50 text-slate-900" x-data="{drawer:false, sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === '1'}" x-effect="localStorage.setItem('sidebarCollapsed', sidebarCollapsed ? '1' : '0')">
-  {% if request.user.is_authenticated %}
-    <div class="app-shell min-h-screen lg:flex">
-      <aside class="app-sidebar hidden lg:flex lg:flex-col transition-all duration-200" :class="sidebarCollapsed ? 'lg:w-24 sidebar-collapsed' : 'lg:w-72'">
-        {% include "components/sidebar.html" %}
-      </aside>
-      <div x-show="drawer" class="fixed inset-0 z-40 lg:hidden" x-cloak>
-        <button class="absolute inset-0 bg-slate-900/45 backdrop-blur-sm" @click="drawer=false" aria-label="إغلاق القائمة"></button>
-        <aside class="mobile-drawer relative mr-0 h-full w-80 max-w-[88vw] bg-white shadow-xl">
+  <div class="main-wrapper">
+    {% if request.user.is_authenticated %}
+      <div class="app-shell min-h-screen lg:flex">
+        <!-- Desktop Sidebar -->
+        <aside class="app-sidebar hidden lg:flex lg:flex-col transition-all duration-300" :class="sidebarCollapsed ? 'lg:w-20 sidebar-collapsed' : 'lg:w-72'">
           {% include "components/sidebar.html" %}
         </aside>
-      </div>
-      <main class="flex-1 min-w-0">
-        {% include "components/topbar.html" %}
-        <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          {% if messages %}
-            <div class="mb-4 space-y-2">
-              {% for message in messages %}<div class="rounded-md bg-emerald-50 px-4 py-3 text-emerald-800">{{ message }}</div>{% endfor %}
+
+        <!-- Mobile Drawer -->
+        <div x-show="drawer" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 lg:hidden" x-cloak>
+          <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="drawer=false"></div>
+          <aside class="mobile-drawer relative h-full w-72 max-w-[85vw] bg-white shadow-2xl"
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transition ease-in duration-200 transform"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full">
+            {% include "components/sidebar.html" %}
+          </aside>
+        </div>
+
+        <div class="flex-1 flex flex-col min-w-0">
+          {% include "components/topbar.html" %}
+          
+          <main class="flex-1 overflow-y-auto">
+            <section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+              {% if messages %}
+                <div class="mb-6 space-y-2">
+                  {% for message in messages %}
+                    <div class="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-emerald-800 shadow-sm backdrop-blur-md">
+                      <i data-lucide="check-circle" class="h-5 w-5 text-emerald-600"></i>
+                      <span class="font-bold">{{ message }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              
+              {% block content %}{% endblock %}
+            </section>
+          </main>
+
+          <footer class="app-footer border-t border-slate-200 bg-white/50 py-4 px-6 backdrop-blur-md">
+            <div class="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-slate-500">
+              <div class="flex items-center gap-2">
+                <span class="brand-dot h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span>&copy; 2026 كاش فلو - جميع الحقوق محفوظة</span>
+              </div>
+              <div class="flex items-center gap-6">
+                <a href="#" class="hover:text-emerald-600 transition-colors">الدعم الفني</a>
+                <a href="#" class="hover:text-emerald-600 transition-colors">سياسة الخصوصية</a>
+                <span class="text-slate-300">v0.1.5</span>
+              </div>
             </div>
-          {% endif %}
-  {% else %}
-    <main class="min-h-screen px-4 py-10 sm:px-6 lg:px-8">
-  {% endif %}
-          {% block content %}{% endblock %}
-  {% if request.user.is_authenticated %}
-        </section>
+          </footer>
+        </div>
+      </div>
+    {% else %}
+      <main class="min-h-screen bg-slate-50">
+        {% block auth_content %}{% block content_alias %}{% endblock %}{% endblock %}
       </main>
-    </div>
-  {% else %}
-    </main>
-  {% endif %}
+    {% endif %}
+  </div>
   <script>
     window.addEventListener('load', () => {
-      if (window.lucide) window.lucide.createIcons();
+      requestAnimationFrame(() => {
+        if (window.lucide) window.lucide.createIcons();
+      });
     });
   </script>
 </body>

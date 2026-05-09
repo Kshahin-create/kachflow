@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}الفواتير | {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <header class="dashboard-hero bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Invoices</span>
+        </div>
+        <h1 class="mt-4 text-4xl font-black tracking-tight text-slate-50 md:text-5xl drop-shadow-lg">الفواتير</h1>
+        <p class="mt-4 text-lg font-medium text-slate-200/90 leading-relaxed max-w-2xl">قائمة الفواتير حسب حساب المستأجر والحالة.</p>
+      </div>
+      <div class="shrink-0">
+        <div class="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-400 backdrop-blur-md">
+          <i data-lucide="receipt-text" class="h-8 w-8"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="panel p-6">
+    <form method="get" class="grid gap-4 md:grid-cols-3 items-end">
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Tenant Account ID</label>
+        <input name="tenant_account_id" value="{{ filters.tenant_account_id }}" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr" placeholder="550e8400-e29b-...">
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">الحالة</label>
+        <select name="paid" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+          <option value="">الكل</option>
+          <option value="false" {% if filters.paid == "false" %}selected{% endif %}>غير مدفوع</option>
+          <option value="true" {% if filters.paid == "true" %}selected{% endif %}>مدفوع</option>
+        </select>
+      </div>
+      <button type="submit" class="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-black text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
+        <i data-lucide="filter" class="h-4 w-4 text-amber-400"></i>
+        تطبيق
+      </button>
+    </form>
+  </div>
+
+  {% if error_message %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <h3 class="text-sm font-black text-rose-900">فشل جلب الفواتير</h3>
+        <p class="mt-1 text-xs font-bold text-rose-700/80">{{ error_message }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+      <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+        <i data-lucide="list" class="h-5 w-5 text-emerald-600"></i>
+        الفواتير
+      </h2>
+      <span class="text-xs font-black text-slate-400">{{ invoices|length }} فاتورة</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50 border-b border-slate-100">
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">رقم</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">Tenant Account</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">التاريخ</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">المبلغ</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الحالة</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for inv in invoices %}
+            <tr class="hover:bg-slate-50/50 transition-colors">
+              <td class="p-6 text-xs font-black text-slate-900 ltr-input" dir="ltr">{{ inv.number|default:inv.invoice_number|default:inv.id|default:"-" }}</td>
+              <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ inv.tenant_account_id|default:"-" }}</td>
+              <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ inv.date|default:inv.created_at|default:"-" }}</td>
+              <td class="p-6 text-sm font-black text-slate-950">{{ inv.amount|default:inv.total|default:0 }} ريال</td>
+              <td class="p-6">
+                <span class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border {% if inv.paid == True or inv.status == 'paid' %}bg-emerald-50 text-emerald-600 border-emerald-100{% else %}bg-amber-50 text-amber-600 border-amber-100{% endif %}">
+                  {{ inv.status|default:inv.paid|yesno:"مدفوع,غير مدفوع" }}
+                </span>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="p-12 text-center text-slate-500 font-bold">لا توجد فواتير.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
+{% endblock %}

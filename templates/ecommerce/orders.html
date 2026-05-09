@@ -1,1 +1,199 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">الطلبات</h1><div class="panel overflow-x-auto"><table class="table">{% for o in orders %}<tr><td>{{ o.order_number }}</td><td>{{ o.net_total }}</td></tr>{% endfor %}</table></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}طلبات المتجر{% endblock %}
+{% block content %}
+<div class="space-y-6 pb-10 max-w-7xl mx-auto">
+  <!-- Header Section -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div class="space-y-1">
+      <h1 class="text-3xl font-black tracking-tight text-slate-900">{% if is_abandoned_view %}السلات المتروكة{% else %}الطلبات{% endif %}</h1>
+      <p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        {% if is_abandoned_view %}متابعة العملاء الذين لم يكملوا عملية الشراء.{% else %}إدارة مبيعات متجر Wuilt والمبيعات اليدوية في مكان واحد.{% endif %}
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <a href="{% url 'ecommerce_orders' %}" class="px-4 py-1.5 rounded-lg text-xs font-black transition-all {% if not is_abandoned_view %}bg-white shadow-sm text-primary{% else %}text-slate-500 hover:text-slate-700{% endif %}">الطلبات</a>
+        <a href="{% url 'ecommerce_orders' %}?abandoned=1" class="px-4 py-1.5 rounded-lg text-xs font-black transition-all {% if is_abandoned_view %}bg-white shadow-sm text-primary{% else %}text-slate-500 hover:text-slate-700{% endif %}">السلات المتروكة</a>
+      </div>
+      <div class="relative group flex-1 md:flex-none min-w-[240px]">
+        <input type="text" id="orderSearch" placeholder="ابحث برقم الطلب أو العميل..." 
+               class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none">
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+      </div>
+      <a href="?sync=1" class="btn btn-primary shadow-lg shadow-primary/20 flex items-center gap-2 px-6 rounded-xl hover:scale-[1.02] active:scale-95 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        تزامن مع Wuilt
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+        <div class="alert shadow-sm border flex items-center gap-3 p-4 rounded-xl animate-in fade-in slide-in-from-top-2
+          {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-100{% elif message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-100{% else %}bg-blue-50 text-blue-700 border-blue-100{% endif %}">
+          {% if message.tags == 'success' %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {% elif message.tags == 'error' %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {% endif %}
+          <span class="font-bold text-sm">{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Desktop View: Table -->
+  <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table w-full border-collapse" id="ordersTable">
+        <thead>
+          <tr class="text-slate-400 text-[11px] uppercase tracking-widest bg-slate-50/50 border-b border-slate-100">
+            <th class="px-6 py-4 text-right font-black">رقم الطلب</th>
+            <th class="px-6 py-4 text-right font-black">العميل</th>
+            <th class="px-6 py-4 text-center font-black">التاريخ</th>
+            <th class="px-6 py-4 text-center font-black">الحالة</th>
+            <th class="px-6 py-4 text-left font-black">الإجمالي</th>
+            <th class="px-6 py-4 text-center font-black">المصدر</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for o in orders %}
+          <tr class="hover:bg-slate-50/80 transition-all cursor-pointer group order-row" onclick="window.location='{% url 'ecommerce_order_detail' o.id %}'">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                </div>
+                <div>
+                  <div class="font-black text-slate-700 text-sm">{{ o.order_number }}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">{{ o.external_id|truncatechars:12 }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="font-bold text-slate-700 text-sm customer-name">{{ o.customer.name|default:"عميل غير معروف" }}</div>
+              <div class="text-[11px] text-slate-400 font-medium" dir="ltr">{{ o.customer.phone }}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="text-xs font-bold text-slate-600">{{ o.order_date|date:"d M Y" }}</div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-tighter mt-0.5">{{ o.created_at|date:"H:i" }}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase inline-block shadow-sm
+                {% if o.status == 'SUCCESSFUL' or o.status == 'PAID' or o.status == 'COMPLETED' %}
+                  bg-emerald-100 text-emerald-700 border border-emerald-200/50
+                {% elif o.status == 'CANCELED' %}
+                  bg-rose-100 text-rose-700 border border-rose-200/50
+                {% else %}
+                  bg-amber-100 text-amber-700 border border-amber-200/50
+                {% endif %}">
+                {{ o.status }}
+              </span>
+              {% if o.shipping_status %}
+                <div class="text-[9px] mt-1.5 text-slate-400 font-bold uppercase tracking-widest">{{ o.shipping_status }}</div>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-left">
+              <div class="font-black text-slate-900 text-base">{{ o.net_total }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ o.currency }}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[9px] font-black uppercase border border-slate-200">
+                {{ o.source }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile View: Card List -->
+  <div class="md:hidden space-y-4">
+    {% for o in orders %}
+    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm active:scale-[0.98] transition-all order-row" onclick="window.location='{% url 'ecommerce_order_detail' o.id %}'">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+          </div>
+          <div>
+            <div class="font-black text-slate-900">#{{ o.order_number }}</div>
+            <div class="text-[10px] text-slate-400 font-bold uppercase">{{ o.order_date|date:"d M Y" }}</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="font-black text-primary text-lg">{{ o.net_total }}</div>
+          <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ o.currency }}</div>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+        <div>
+          <div class="text-xs font-black text-slate-700 customer-name">{{ o.customer.name|default:"عميل غير معروف" }}</div>
+          <div class="text-[10px] text-slate-400 mt-0.5" dir="ltr">{{ o.customer.phone }}</div>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase shadow-sm
+            {% if o.status == 'SUCCESSFUL' or o.status == 'PAID' or o.status == 'COMPLETED' %}
+              bg-emerald-100 text-emerald-700
+            {% elif o.status == 'CANCELED' %}
+              bg-rose-100 text-rose-700
+            {% else %}
+              bg-amber-100 text-amber-700
+            {% endif %}">
+            {{ o.status }}
+          </span>
+          <span class="text-[9px] text-slate-300 font-bold uppercase tracking-widest">{{ o.source }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not orders %}
+  <div class="bg-white rounded-3xl p-20 text-center border-2 border-dashed border-slate-100">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-8 4-8-4" /></svg>
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-xl font-black text-slate-900">لا توجد طلبات مسجلة</h3>
+        <p class="text-slate-500 text-sm">ابدأ بمزامنة متجرك على Wuilt لجلب كافة المبيعات تلقائياً.</p>
+      </div>
+      <a href="?sync=1" class="btn btn-primary btn-wide rounded-xl mt-4">ابدأ المزامنة الآن</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  // Simple frontend search functionality
+  document.getElementById('orderSearch')?.addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.order-row');
+    
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      if (text.includes(term)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+</script>
+
+<style>
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slide-in-from-top-2 { from { transform: translateY(-0.5rem); } to { transform: translateY(0); } }
+  .animate-in { animation-duration: 300ms; animation-fill-mode: both; }
+  .fade-in { animation-name: fade-in; }
+  .slide-in-from-top-2 { animation-name: slide-in-from-top-2; }
+</style>
+{% endblock %}

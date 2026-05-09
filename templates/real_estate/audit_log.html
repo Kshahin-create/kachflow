@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}سجل التدقيق | {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <header class="dashboard-hero bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Audit Log</span>
+        </div>
+        <h1 class="mt-4 text-4xl font-black tracking-tight text-slate-50 md:text-5xl drop-shadow-lg">سجل التدقيق</h1>
+        <p class="mt-4 text-lg font-medium text-slate-200/90 leading-relaxed max-w-2xl">تتبع عمليات الإنشاء والتعديل والحذف القادمة من API حسب الجدول أو العملية.</p>
+      </div>
+      <div class="shrink-0">
+        <div class="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-400 backdrop-blur-md">
+          <i data-lucide="shield" class="h-8 w-8"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="panel p-6">
+    <form method="get" class="grid gap-4 md:grid-cols-2 lg:grid-cols-5 items-end">
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">الجدول</label>
+        <input name="table" value="{{ filters.table }}" placeholder="bookings / tenants / units ..." class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr">
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">العملية</label>
+        <select name="action" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+          <option value="">الكل</option>
+          <option value="INSERT" {% if filters.action == "INSERT" %}selected{% endif %}>INSERT</option>
+          <option value="UPDATE" {% if filters.action == "UPDATE" %}selected{% endif %}>UPDATE</option>
+          <option value="DELETE" {% if filters.action == "DELETE" %}selected{% endif %}>DELETE</option>
+        </select>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">المستخدم</label>
+        <input name="user_id" value="{{ filters.user_id }}" placeholder="user_id" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr">
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">الحد</label>
+        <input name="limit" value="{{ filters.limit|default:'50' }}" placeholder="50" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr">
+      </div>
+      <button type="submit" class="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-black text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center justify-center gap-2">
+        <i data-lucide="filter" class="h-4 w-4 text-amber-400"></i>
+        تطبيق
+      </button>
+    </form>
+  </div>
+
+  {% if error_message %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <h3 class="text-sm font-black text-rose-900">فشل جلب سجل التدقيق</h3>
+        <p class="mt-1 text-xs font-bold text-rose-700/80">{{ error_message }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+      <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+        <i data-lucide="list" class="h-5 w-5 text-emerald-600"></i>
+        السجلات
+      </h2>
+      <span class="text-xs font-black text-slate-400">{{ rows|length }} سجل</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50 border-b border-slate-100">
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الوقت</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الجدول</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">العملية</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">المعرف</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase">تفاصيل</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for r in rows %}
+            <tr class="hover:bg-slate-50/50 transition-colors">
+              <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ r.created_at|default:r.timestamp|default:"-" }}</td>
+              <td class="p-6 text-xs font-black text-slate-900">{{ r.table|default:"-" }}</td>
+              <td class="p-6">
+                <span class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border {% if r.action == 'INSERT' %}bg-emerald-50 text-emerald-600 border-emerald-100{% elif r.action == 'UPDATE' %}bg-amber-50 text-amber-600 border-amber-100{% elif r.action == 'DELETE' %}bg-rose-50 text-rose-600 border-rose-100{% else %}bg-slate-50 text-slate-600 border-slate-100{% endif %}">{{ r.action|default:"-" }}</span>
+              </td>
+              <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ r.record_id|default:r.id|default:"-" }}</td>
+              <td class="p-6">
+                <details class="rounded-xl border border-slate-200 bg-white">
+                  <summary class="cursor-pointer select-none px-4 py-2 text-xs font-black text-slate-600 hover:bg-slate-50 transition">عرض</summary>
+                  <div class="p-4 bg-slate-900 overflow-x-auto">
+                    <pre class="text-emerald-300 font-mono text-[10px] ltr">{{ r|pprint }}</pre>
+                  </div>
+                </details>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="p-12 text-center text-slate-500 font-bold">لا توجد سجلات مطابقة.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل العميل: {{ customer.name }}{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6 pb-10">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2 text-slate-500 mb-2">
+        <a href="{% url 'ecommerce_customers' %}" class="hover:text-primary transition-colors flex items-center gap-1 text-sm font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          قائمة العملاء
+        </a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl font-black uppercase">
+          {{ customer.name|slice:":1" }}
+        </div>
+        <div>
+          <h1 class="text-3xl font-black tracking-tight">{{ customer.name }}</h1>
+          <div class="flex items-center gap-2 mt-1">
+            {% if customer.is_verified %}
+            <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[10px] font-black uppercase border border-blue-100 flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+              حساب موثق
+            </span>
+            {% endif %}
+            <span class="text-xs text-slate-400 font-medium">معرف: {{ customer.external_id|truncatechars:20 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm
+        {% if customer.is_active %}bg-emerald-100 text-emerald-700 border border-emerald-200
+        {% else %}bg-slate-100 text-slate-700 border border-slate-200{% endif %}">
+        {% if customer.is_active %}نشط حالياً{% else %}غير نشط{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+      <p class="text-xs font-black text-slate-400 uppercase tracking-widest">إجمالي المشتريات</p>
+      <div class="flex items-baseline gap-1">
+        <span class="text-3xl font-black text-slate-900">{{ customer.total_spent }}</span>
+        <span class="text-xs font-bold text-slate-400">{{ project.base_currency }}</span>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+      <p class="text-xs font-black text-slate-400 uppercase tracking-widest">عدد الطلبات</p>
+      <span class="text-3xl font-black text-slate-900 block">{{ customer.total_orders }}</span>
+    </div>
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+      <p class="text-xs font-black text-slate-400 uppercase tracking-widest">متوسط قيمة الطلب</p>
+      <div class="flex items-baseline gap-1">
+        <span class="text-3xl font-black text-slate-900">{{ avg_order_value|floatformat:2 }}</span>
+        <span class="text-xs font-bold text-slate-400">{{ project.base_currency }}</span>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+      <p class="text-xs font-black text-slate-400 uppercase tracking-widest">تاريخ التسجيل</p>
+      <span class="text-xl font-black text-slate-900 block">{{ customer.created_at|date:"d M Y" }}</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left: Order History -->
+    <div class="lg:col-span-8 space-y-8">
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+          <h2 class="font-black text-xl flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+            سجل الطلبات
+          </h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table w-full border-collapse">
+            <thead>
+              <tr class="text-slate-400 text-[11px] uppercase tracking-widest bg-slate-50/50">
+                <th class="px-8 py-4 text-right">رقم الطلب</th>
+                <th class="px-8 py-4 text-center">التاريخ</th>
+                <th class="px-8 py-4 text-center">الحالة</th>
+                <th class="px-8 py-4 text-left">الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for o in orders %}
+              <tr class="hover:bg-slate-50 transition-all cursor-pointer group" onclick="window.location='{% url 'ecommerce_order_detail' o.id %}'">
+                <td class="px-8 py-4">
+                  <div class="font-black text-slate-700">#{{ o.order_number }}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">{{ o.external_id|truncatechars:15 }}</div>
+                </td>
+                <td class="px-8 py-4 text-center">
+                  <div class="text-sm font-bold text-slate-600">{{ o.order_date|date:"d M Y" }}</div>
+                </td>
+                <td class="px-8 py-4 text-center">
+                  <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase shadow-sm
+                    {% if o.status == 'SUCCESSFUL' or o.status == 'PAID' %}bg-emerald-100 text-emerald-700
+                    {% elif o.status == 'CANCELED' %}bg-rose-100 text-rose-700
+                    {% else %}bg-amber-100 text-amber-700{% endif %}">
+                    {{ o.status }}
+                  </span>
+                </td>
+                <td class="px-8 py-4 text-left">
+                  <div class="font-black text-slate-900">{{ o.net_total }} <small class="text-[10px] text-slate-400">{{ o.currency }}</small></div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="px-8 py-20 text-center">
+                  <p class="text-slate-400 font-bold">لا توجد طلبات مسجلة لهذا العميل</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Contact & Addresses -->
+    <div class="lg:col-span-4 space-y-6">
+      <!-- Contact Card -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-6">
+        <h2 class="font-black text-xl border-b border-slate-50 pb-4">معلومات التواصل</h2>
+        <div class="space-y-4">
+          <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-all">
+            <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>
+            <div>
+              <p class="text-[10px] text-slate-400 font-black uppercase mb-0.5">البريد الإلكتروني</p>
+              <a href="mailto:{{ customer.email }}" class="font-bold text-slate-700 hover:text-primary transition-colors">{{ customer.email|default:"-" }}</a>
+            </div>
+          </div>
+          <div class="flex items-start gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-all">
+            <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+            </div>
+            <div>
+              <p class="text-[10px] text-slate-400 font-black uppercase mb-0.5">رقم الجوال</p>
+              <a href="tel:{{ customer.phone }}" class="font-bold text-slate-700 hover:text-primary transition-colors" dir="ltr">{{ customer.phone|default:"-" }}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Addresses Card -->
+      {% if customer.addresses_json %}
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-6">
+        <h2 class="font-black text-xl border-b border-slate-50 pb-4">العناوين المسجلة</h2>
+        <div class="space-y-4">
+          {% for addr in customer.addresses_json %}
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-1 h-full bg-slate-200"></div>
+            <p class="font-bold text-slate-800 text-sm">{{ addr.addressLine1 }}</p>
+            {% if addr.addressLine2 %}<p class="text-xs text-slate-500">{{ addr.addressLine2 }}</p>{% endif %}
+            <p class="text-xs font-medium text-slate-600">
+              {{ addr.areaSnapshot.cityName }}, {{ addr.areaSnapshot.stateName }}<br>
+              {{ addr.areaSnapshot.countryName }}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Tags Card -->
+      {% if customer.tags_json %}
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-4">
+        <h2 class="font-black text-xl border-b border-slate-50 pb-4">الوسوم</h2>
+        <div class="flex flex-wrap gap-2">
+          {% for tag in customer.tags_json %}
+          <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase border" style="background-color: {{ tag.color }}15; border-color: {{ tag.color }}40; color: {{ tag.color }};">
+            {{ tag.name }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

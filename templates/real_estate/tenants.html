@@ -1,52 +1,193 @@
 {% extends "base.html" %}
-{% block title %}المستأجرون | KashFlow{% endblock %}
+{% block title %}المستأجرون | {{ project.name }}{% endblock %}
+
 {% block content %}
 {% if empty_project %}
-  <div class="panel empty">اختر مشروعًا أولًا لعرض المستأجرين.</div>
-{% else %}
-  <div class="dashboard-hero mb-5">
-    <div>
-      <span class="project-status">نخبة تسكين API</span>
-      <h1 class="mt-3 text-3xl font-black">المستأجرون</h1>
-      <p class="mt-2 max-w-2xl text-sm">قائمة المستأجرين المسحوبة من النظام الخارجي، مع ربط بياناتهم بالوحدات المؤجرة داخل المشروع.</p>
+  <div class="flex min-h-[400px] flex-col items-center justify-center rounded-3xl bg-white p-12 shadow-sm">
+    <div class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+      <i data-lucide="folder-open" class="h-10 w-10"></i>
     </div>
-    <form class="flex w-full max-w-md gap-2" method="get">
-      <input class="input mt-0" name="q" value="{{ filters.q }}" placeholder="ابحث بالاسم، الجوال، النشاط أو الشركة">
-      <button class="btn-primary shrink-0" type="submit"><i data-lucide="search"></i> بحث</button>
-    </form>
+    <h2 class="mt-6 text-xl font-black text-slate-900">لا توجد مشاريع متاحة</h2>
+    <p class="mt-2 text-slate-500 text-center max-w-sm">يرجى اختيار مشروع نشط من القائمة الجانبية.</p>
   </div>
+{% else %}
+<div class="space-y-8 pb-12" x-data="{ searchQuery: '' }">
+  <!-- Modern Header -->
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+          إدارة المستأجرين
+        </span>
+        <span class="rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/30">
+          {{ totals.tenants }} مستأجر
+        </span>
+      </div>
+      <h1 class="mt-4 text-4xl lg:text-5xl font-black tracking-tight leading-none text-slate-50 drop-shadow-lg">المستأجرون</h1>
+      <p class="mt-4 text-slate-200 font-medium max-w-2xl text-lg opacity-90">قائمة المستأجرين والشركات، مع ربط بياناتهم بالوحدات المؤجرة وتتبع حالة التحصيل والتواصل.</p>
+    </div>
+    
+    <div class="relative z-10 flex flex-col sm:flex-row gap-4">
+      <div class="relative group min-w-[280px]">
+        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-emerald-400 transition-colors"></i>
+        <input 
+          type="text" 
+          x-model="searchQuery"
+          placeholder="ابحث بالاسم، الجوال، الشركة..." 
+          class="w-full rounded-2xl bg-white/10 border border-white/20 pr-12 pl-4 py-4 text-sm font-bold text-white placeholder:text-slate-400 outline-none focus:bg-white/20 focus:border-emerald-500/50 transition-all backdrop-blur-md"
+        >
+      </div>
+      <button onclick="window.location.reload()" class="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-sm font-black text-white hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20 whitespace-nowrap">
+        <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+        تحديث القائمة
+      </button>
+    </div>
+  </header>
 
+  <!-- Key Metrics -->
   <div class="grid gap-4 md:grid-cols-4">
-    <div class="kpi stat-card"><span>إجمالي المستأجرين</span><strong>{{ totals.tenants }}</strong></div>
-    <div class="kpi stat-card"><span>وحدات مؤجرة</span><strong>{{ totals.rented_units }}</strong></div>
-    <div class="kpi stat-card"><span>وحدات محجوزة</span><strong>{{ totals.reserved_units }}</strong></div>
-    <div class="kpi stat-card"><span>وحدات عليها بيانات عميل</span><strong>{{ totals.tenant_units }}</strong></div>
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 group-hover:rotate-6 transition-transform">
+          <i data-lucide="users-2" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي المستأجرين</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.tenants }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+          <i data-lucide="key" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">وحدات مؤجرة</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.rented_units }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all">
+          <i data-lucide="bookmark" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">وحدات محجوزة</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.reserved_units }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-all">
+          <i data-lucide="database" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">بيانات API</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.tenant_units }}</h3>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="tenant-grid mt-5">
+  <!-- Tenant Grid -->
+  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
     {% for tenant in tenants %}
-      <article class="tenant-card">
-        <div class="tenant-card-head">
-          <span class="tenant-avatar"><i data-lucide="user-round"></i></span>
-          <div class="min-w-0 flex-1">
-            <h2>{{ tenant.name|default:"مستأجر بدون اسم" }}</h2>
-            <p>{{ tenant.company_name|default:"لا يوجد اسم نشاط تجاري" }}</p>
+      <article 
+        class="group relative bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden"
+        x-show="searchQuery === '' || '{{ tenant.name }}'.includes(searchQuery) || '{{ tenant.company_name }}'.includes(searchQuery) || '{{ tenant.phone }}'.includes(searchQuery)"
+      >
+        <div class="relative">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between mb-8">
+            <div class="flex items-center gap-4">
+              <div class="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 shadow-xl group-hover:rotate-6 transition-transform duration-500">
+                <i data-lucide="user-check" class="h-7 w-7"></i>
+              </div>
+              <div class="min-w-0">
+                <h2 class="text-xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors truncate">{{ tenant.name|default:"مستأجر بدون اسم" }}</h2>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{{ tenant.company_name|default:"لا يوجد نشاط تجاري" }}</span>
+                </div>
+              </div>
+            </div>
+            {% if tenant.external_id %}
+              <span class="rounded-full bg-emerald-50 text-[10px] font-black text-emerald-600 px-3 py-1.5 border border-emerald-100">API</span>
+            {% endif %}
           </div>
-          {% if tenant.external_id %}<span class="status-pill status-rented">API</span>{% endif %}
+
+          <!-- Contact & Activity Grid -->
+          <div class="grid grid-cols-2 gap-3 mb-8">
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 group-hover:bg-white group-hover:border-slate-200 transition-all">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="phone" class="h-3 w-3"></i> الجوال
+              </div>
+              <span class="text-xs font-black text-slate-900">{{ tenant.phone|default:"-" }}</span>
+            </div>
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 group-hover:bg-white group-hover:border-slate-200 transition-all">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="briefcase" class="h-3 w-3"></i> النشاط
+              </div>
+              <span class="text-xs font-black text-slate-900 truncate">{{ tenant.activity_type|default:"-" }}</span>
+            </div>
+          </div>
+
+          <!-- Timeline & Info -->
+          <div class="space-y-4 mb-8">
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div class="flex items-center gap-3">
+                <i data-lucide="calendar" class="h-4 w-4 text-emerald-600"></i>
+                <span class="text-xs font-bold text-slate-500">تاريخ التعاقد</span>
+              </div>
+              <span class="text-xs font-black text-slate-900">{{ tenant.start_date|date:"Y-m-d"|default:"-" }}</span>
+            </div>
+            {% if tenant.notes %}
+              <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-100">
+                <div class="flex items-start gap-3">
+                  <i data-lucide="sticky-note" class="h-4 w-4 text-amber-500 shrink-0 mt-0.5"></i>
+                  <p class="text-xs font-medium text-amber-800 leading-relaxed">{{ tenant.notes }}</p>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Action -->
+          <button class="flex items-center justify-center gap-3 w-full rounded-2xl bg-slate-900 py-4 text-sm font-black text-white hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-slate-200 group-hover:shadow-emerald-200">
+            <i data-lucide="external-link" class="h-4 w-4 text-amber-400 group-hover:text-white transition-colors"></i>
+            عرض الملف الكامل
+          </button>
         </div>
-        <div class="tenant-specs">
-          <span><i data-lucide="phone"></i>{{ tenant.phone|default:"لا يوجد رقم" }}</span>
-          <span><i data-lucide="briefcase-business"></i>{{ tenant.activity_type|default:"نشاط غير محدد" }}</span>
-          <span><i data-lucide="calendar-days"></i>{{ tenant.start_date|date:"Y-m-d"|default:"بداية غير محددة" }}</span>
-          <span><i data-lucide="fingerprint"></i>{{ tenant.external_id|default:"محلي" }}</span>
-        </div>
-        {% if tenant.notes %}
-          <p class="tenant-note">{{ tenant.notes }}</p>
-        {% endif %}
       </article>
     {% empty %}
-      <div class="panel empty">لا يوجد مستأجرون مطابقون للبحث الحالي.</div>
+      <div class="col-span-full py-24 text-center">
+        <div class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-slate-300 mb-6">
+          <i data-lucide="users" class="h-12 w-12"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">لا يوجد مستأجرون مطابقون</h3>
+        <p class="text-slate-500 mt-2">جرب البحث بكلمات مختلفة أو تحديث البيانات</p>
+      </div>
     {% endfor %}
   </div>
+</div>
 {% endif %}
+
+<style>
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .grid article {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+</style>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
 {% endblock %}

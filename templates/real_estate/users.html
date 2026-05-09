@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}إدارة المستخدمين | {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <!-- Header -->
+  <header class="dashboard-hero bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+            Access Control
+          </span>
+        </div>
+        <h1 class="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">إدارة المستخدمين</h1>
+        <p class="mt-4 text-lg font-medium text-slate-400 leading-relaxed">تحكم في صلاحيات الوصول للمنصة، راقب أدوار المستخدمين، وقم بإدارة الحسابات المسجلة.</p>
+      </div>
+      <div class="shrink-0">
+        <div class="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-400 backdrop-blur-md">
+          <i data-lucide="users" class="h-8 w-8"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {% if error_message %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <h3 class="text-sm font-black text-rose-900">فشل جلب قائمة المستخدمين</h3>
+        <p class="mt-1 text-xs font-bold text-rose-700/80">{{ error_message }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Users Table / List -->
+  <div class="panel overflow-hidden">
+    <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+      <h2 class="text-xl font-black text-slate-950 flex items-center gap-3">
+        <i data-lucide="shield-check" class="h-6 w-6 text-emerald-600"></i>
+        المستخدمون المسجلون
+      </h2>
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ users|length }} مستخدم نشط</span>
+    </div>
+
+    <div class="desktop-table overflow-x-auto">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50">
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">المستخدم</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">البريد الإلكتروني</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">الأدوار / الصلاحيات</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">تاريخ الانضمام</th>
+            <th class="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for user_data in users %}
+            <tr class="hover:bg-slate-50/80 transition-colors group">
+              <td class="p-6">
+                <div class="flex items-center gap-4">
+                  <div class="h-10 w-10 rounded-xl bg-slate-900 flex items-center justify-center text-amber-400 font-black text-xs shadow-lg">
+                    {{ user_data.display_name|default:user_data.email|first|upper }}
+                  </div>
+                  <span class="font-black text-slate-950 text-sm">{{ user_data.display_name|default:"بدون اسم" }}</span>
+                </div>
+              </td>
+              <td class="p-6">
+                <span class="text-sm font-bold text-slate-600 ltr">{{ user_data.email }}</span>
+              </td>
+              <td class="p-6">
+                <div class="flex flex-wrap justify-center gap-2">
+                  {% for role in user_data.roles %}
+                    <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
+                      {{ role }}
+                    </span>
+                  {% empty %}
+                    <span class="text-[10px] font-bold text-slate-400">لا توجد أدوار</span>
+                  {% endfor %}
+                </div>
+              </td>
+              <td class="p-6">
+                <span class="text-xs font-bold text-slate-500">{{ user_data.created_at|date:"Y-m-d"|default:"-" }}</span>
+              </td>
+              <td class="p-6">
+                <div class="flex justify-end gap-2">
+                  <button class="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:bg-slate-900 hover:text-amber-400 transition-all shadow-sm">
+                    <i data-lucide="edit-3" class="h-4 w-4"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="p-20 text-center">
+                <div class="mx-auto h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+                  <i data-lucide="user-minus" class="h-10 w-10"></i>
+                </div>
+                <h3 class="mt-6 text-xl font-black text-slate-900">لا يوجد مستخدمون</h3>
+                <p class="mt-2 text-slate-500">لم يتم العثور على أي مستخدمين مسجلين في النظام حالياً.</p>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile List -->
+    <div class="lg:hidden p-4 space-y-4">
+      {% for user_data in users %}
+        <div class="panel p-5 bg-slate-50/50 border-slate-100">
+          <div class="flex items-center gap-4">
+            <div class="h-12 w-12 rounded-xl bg-slate-900 flex items-center justify-center text-amber-400 font-black text-sm shadow-lg">
+              {{ user_data.display_name|default:user_data.email|first|upper }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-sm font-black text-slate-950 truncate">{{ user_data.display_name }}</h3>
+              <p class="text-xs font-bold text-slate-500 ltr truncate">{{ user_data.email }}</p>
+            </div>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            {% for role in user_data.roles %}
+              <span class="inline-flex rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
+                {{ role }}
+              </span>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

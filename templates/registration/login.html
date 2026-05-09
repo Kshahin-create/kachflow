@@ -1,31 +1,96 @@
 {% extends "base.html" %}
 {% block title %}تسجيل الدخول{% endblock %}
-{% block content %}
-<div class="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-[1.1fr_.9fr]">
-  <section class="project-hero min-h-80 flex-col items-start justify-center">
-    <p class="text-sm font-semibold text-emerald-700">KashFlow Workspace</p>
-    <h1 class="mt-2 text-4xl font-black leading-tight text-slate-950">ادخل على مشروعك كبيئة مستقلة بالكامل</h1>
-    <p class="mt-3 max-w-xl text-sm leading-7 text-slate-600">بعد تسجيل الدخول ستختار المشروع الذي تريد العمل عليه، وكل شاشة ستعرض بيانات هذا المشروع فقط.</p>
-  </section>
-  <section class="panel p-6">
-    <h2 class="text-2xl font-black text-slate-950">تسجيل الدخول</h2>
-    <form method="post" class="mt-6 space-y-4">
-      {% csrf_token %}
-      {% if form.non_field_errors %}
-        <div class="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-800">{{ form.non_field_errors|join:", " }}</div>
-      {% endif %}
-      {% for field in form %}
-        <label class="block">
-          <span class="text-sm font-bold text-slate-700">{{ field.label }}</span>
-          {{ field }}
-          {% if field.errors %}<span class="mt-1 block text-sm text-rose-700">{{ field.errors|join:", " }}</span>{% endif %}
-        </label>
-      {% endfor %}
-      <button class="btn-primary w-full" type="submit">دخول</button>
-    </form>
-  </section>
+{% block auth_content %}
+<div class="min-h-screen flex items-center justify-center p-6 bg-slate-50 relative overflow-hidden">
+  <!-- Decorative background elements -->
+  <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-0 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-white">
+    <!-- Left Side: Branding & Info -->
+    <div class="bg-slate-900 p-12 lg:p-16 flex flex-col justify-between text-white relative">
+      <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent pointer-events-none"></div>
+      
+      <div class="relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg flex items-center justify-center">
+            <i data-lucide="layers" class="text-white h-7 w-7"></i>
+          </div>
+          <h2 class="text-2xl font-black tracking-tight">كاش فلو</h2>
+        </div>
+        
+        <div class="mt-20">
+          <h1 class="text-4xl lg:text-5xl font-black leading-tight">
+            مساحة العمل <br/>
+            <span class="text-emerald-400">الذكية لمشاريعك</span>
+          </h1>
+          <p class="mt-6 text-lg text-slate-400 font-medium leading-relaxed max-w-md">
+            نظام الإدارة المالية والتشغيلية المتكامل. ادخل الآن لإدارة عقاراتك، عملائك، وتقاريرك في بيئة عمل مستقلة واحترافية.
+          </p>
+        </div>
+      </div>
+
+      <div class="relative z-10 mt-12 flex items-center gap-6">
+        <div class="flex flex-col">
+          <span class="text-2xl font-black text-white">v0.1.5</span>
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Enterprise Edition</span>
+        </div>
+        <div class="h-8 w-px bg-slate-800"></div>
+        <div class="flex items-center gap-2">
+          <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">جميع الأنظمة تعمل بكفاءة</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Login Form -->
+    <div class="p-12 lg:p-16 bg-white flex flex-col justify-center">
+      <div class="max-w-sm mx-auto w-full">
+        <h2 class="text-3xl font-black text-slate-950">تسجيل الدخول</h2>
+        <p class="mt-2 text-sm font-bold text-slate-600">يرجى إدخال بيانات الاعتماد للوصول إلى لوحة التحكم</p>
+
+        <form method="post" class="mt-10 space-y-6">
+          {% csrf_token %}
+          
+          {% if form.non_field_errors %}
+            <div class="rounded-2xl bg-rose-50 border border-rose-100 p-4 flex items-start gap-3">
+              <i data-lucide="alert-circle" class="h-5 w-5 text-rose-600 shrink-0 mt-0.5"></i>
+              <p class="text-sm font-bold text-rose-800">{{ form.non_field_errors|join:", " }}</p>
+            </div>
+          {% endif %}
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-600 px-1">اسم المستخدم</label>
+            <div class="relative group">
+              <i data-lucide="user" class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-emerald-500 transition-colors"></i>
+              <input name="username" type="text" required class="w-full rounded-2xl border border-slate-300 bg-slate-50/50 pr-12 pl-4 py-4 text-sm font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 transition-all" placeholder="Enter your username">
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between px-1">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-600">كلمة المرور</label>
+              <a href="#" class="text-[10px] font-black uppercase tracking-widest text-emerald-700 hover:text-emerald-800 transition-colors">نسيت كلمة المرور؟</a>
+            </div>
+            <div class="relative group">
+              <i data-lucide="lock" class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-emerald-500 transition-colors"></i>
+              <input name="password" type="password" required class="w-full rounded-2xl border border-slate-300 bg-slate-50/50 pr-12 pl-4 py-4 text-sm font-bold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 transition-all" placeholder="••••••••">
+            </div>
+          </div>
+
+          <button class="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4.5 text-sm font-black text-white hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98]" type="submit">
+            <span>دخول النظام</span>
+            <i data-lucide="arrow-left" class="h-4 w-4 text-amber-400"></i>
+          </button>
+        </form>
+
+        <p class="mt-10 text-center text-xs font-bold text-slate-400">
+          هل تواجه مشكلة في الدخول؟ <a href="#" class="text-emerald-600 hover:underline">اتصل بالدعم الفني</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
-<script>
-  document.querySelectorAll('input').forEach((field) => field.classList.add('input'));
-</script>
 {% endblock %}

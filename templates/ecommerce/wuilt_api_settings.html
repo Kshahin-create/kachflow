@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}إعدادات Wuilt API | كاش فلو{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8 pb-12">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider rounded-full">Wuilt GraphQL Integration</span>
+      </div>
+      <h1 class="text-3xl font-black text-slate-900 tracking-tight">إعدادات الربط مع Wuilt</h1>
+      <p class="mt-2 text-slate-500 max-w-lg font-medium">قم بإدارة مفاتيح الوصول وعمليات المزامنة التلقائية لمتجر <span class="text-emerald-600 font-bold">{{ project.name }}</span>.</p>
+    </div>
+    <div class="relative z-10">
+        {% if connection.status == 'active' or connection.status == 'configured' %}
+            <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-2xl shadow-sm">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <span class="text-sm font-black">متصل ونشط</span>
+            </div>
+        {% else %}
+            <div class="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-2xl shadow-sm">
+                <i data-lucide="alert-circle" class="h-4 w-4"></i>
+                <span class="text-sm font-black">{{ connection.status|default:"غير مهيأ" }}</span>
+            </div>
+        {% endif %}
+    </div>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-12">
+    <!-- Main Settings Form -->
+    <div class="lg:col-span-8 space-y-8">
+      <form method="post" class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        {% csrf_token %}
+        <div class="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-white rounded-xl shadow-sm border border-slate-200">
+                <i data-lucide="settings-2" class="h-5 w-5 text-emerald-600"></i>
+            </div>
+            <h2 class="text-xl font-black text-slate-900">بيانات الوصول الأساسية</h2>
+          </div>
+        </div>
+
+        <div class="p-6 md:p-8 space-y-6">
+          <div class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <i data-lucide="tag" class="h-4 w-4 text-slate-400"></i>
+                اسم الاتصال
+              </label>
+              <input class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none font-medium" 
+                     name="name" value="{{ connection.name }}" placeholder="مثلاً: متجر باهية الرئيسي">
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <i data-lucide="hash" class="h-4 w-4 text-slate-400"></i>
+                Store ID
+              </label>
+              <input class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none font-medium font-mono text-sm" 
+                     name="store_id" value="{{ store_id }}" placeholder="Store_cm84j35...">
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+              <i data-lucide="link" class="h-4 w-4 text-slate-400"></i>
+              GraphQL Endpoint
+            </label>
+            <input class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none font-medium font-mono text-sm" 
+                   name="endpoint" value="{{ endpoint }}">
+          </div>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <i data-lucide="languages" class="h-4 w-4 text-slate-400"></i>
+                اللغة الافتراضية (Locale)
+              </label>
+              <select class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none font-medium appearance-none bg-no-repeat bg-[left_1rem_center]" 
+                      style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2364748b%22 stroke-width=%222%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22m19 9-7 7-7-7%22/%3E%3C/svg%3E'); background-size: 1.25rem;"
+                      name="locale">
+                <option value="ar" {% if locale == 'ar' %}selected{% endif %}>العربية (ar)</option>
+                <option value="en" {% if locale == 'en' %}selected{% endif %}>English (en)</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <i data-lucide="key" class="h-4 w-4 text-slate-400"></i>
+                API Key (X-API-KEY)
+              </label>
+              <div class="relative">
+                <input class="w-full px-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all outline-none font-medium pr-10" 
+                       name="api_key" type="password" autocomplete="off" placeholder="{% if masked_api_key %}المفتاح محفوظ: {{ masked_api_key }}{% else %}أدخل المفتاح هنا...{% endif %}">
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <i data-lucide="shield-check" class="h-5 w-5 text-slate-300"></i>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-400 font-medium mr-1">اتركه فارغاً للحفاظ على المفتاح الحالي.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 md:p-8 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
+          <button class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black transition-all shadow-lg shadow-emerald-200" 
+                  name="action" value="save" type="submit">
+            <i data-lucide="save" class="h-5 w-5"></i>
+            حفظ الإعدادات
+          </button>
+          <button class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-2xl font-black transition-all shadow-sm" 
+                  name="action" value="test" type="submit">
+            <i data-lucide="zap" class="h-5 w-5 text-amber-500"></i>
+            اختبار الاتصال
+          </button>
+          <button class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black transition-all shadow-lg shadow-slate-200" 
+                  name="action" value="sync" type="submit">
+            <i data-lucide="refresh-cw" class="h-5 w-5"></i>
+            مزامنة الآن
+          </button>
+        </div>
+      </form>
+
+      <!-- Sync Logs Section -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between gap-4 flex-wrap">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-50 rounded-xl shadow-sm border border-indigo-100">
+                <i data-lucide="history" class="h-5 w-5 text-indigo-600"></i>
+            </div>
+            <h2 class="text-xl font-black text-slate-900">سجل المزامنة الأخير</h2>
+          </div>
+          <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100">آخر 10 عمليات</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-slate-50/50 text-slate-400 text-[11px] font-black uppercase tracking-widest border-b border-slate-100">
+                <th class="px-6 py-4">الحالة</th>
+                <th class="px-6 py-4">الوقت</th>
+                <th class="px-6 py-4 text-center">النتائج</th>
+                <th class="px-6 py-4">التفاصيل / الأخطاء</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for log in sync_logs %}
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-6 py-4">
+                  {% if log.status == 'completed' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-black rounded-full border border-emerald-100">
+                      <i data-lucide="check" class="h-3 w-3"></i> نجاح
+                    </span>
+                  {% elif log.status == 'running' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-[11px] font-black rounded-full border border-blue-100 animate-pulse">
+                      <i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i> جاري...
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 text-[11px] font-black rounded-full border border-red-100">
+                      <i data-lucide="x" class="h-3 w-3"></i> فشل
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm font-bold text-slate-700">{{ log.started_at|date:"Y/m/d" }}</div>
+                  <div class="text-[10px] text-slate-400 font-medium">{{ log.started_at|time:"H:i" }}</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-center gap-3">
+                    <div class="text-center">
+                      <div class="text-xs font-black text-slate-700">{{ log.records_fetched }}</div>
+                      <div class="text-[9px] font-bold text-slate-400 uppercase">Fetched</div>
+                    </div>
+                    <div class="w-px h-6 bg-slate-100"></div>
+                    <div class="text-center">
+                      <div class="text-xs font-black text-emerald-600">{{ log.records_created }}</div>
+                      <div class="text-[9px] font-bold text-slate-400 uppercase">New</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  {% if log.error_message %}
+                    <p class="text-[11px] leading-relaxed text-red-600 font-medium max-w-xs break-words">{{ log.error_message }}</p>
+                  {% else %}
+                    <p class="text-[11px] text-slate-400 font-medium italic">تمت العملية بسلاسة</p>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="p-4 bg-slate-50 rounded-full border border-slate-100">
+                        <i data-lucide="database" class="h-8 w-8 text-slate-300"></i>
+                    </div>
+                    <p class="text-slate-400 font-bold">لا توجد سجلات مزامنة بعد.</p>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="lg:col-span-4 space-y-8">
+      <!-- Webhook Panel -->
+      <div class="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-slate-200 relative overflow-hidden group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-700"></div>
+        
+        <div class="relative z-10 space-y-6">
+          <div class="flex items-center gap-3">
+            <div class="p-2 bg-white/10 rounded-xl backdrop-blur-md border border-white/10">
+                <i data-lucide="webhook" class="h-5 w-5 text-emerald-400"></i>
+            </div>
+            <h2 class="text-xl font-black tracking-tight">Webhook URL</h2>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="p-4 bg-black/30 rounded-2xl border border-white/10 relative group/copy">
+              <p id="webhook-text" class="text-xs font-mono font-bold text-emerald-400 break-all leading-relaxed">{{ webhook_url }}</p>
+              <button onclick="copyWebhook()" class="absolute top-2 left-2 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover/copy:opacity-100">
+                <i data-lucide="copy" class="h-3 w-3"></i>
+              </button>
+            </div>
+            <p class="text-sm leading-relaxed text-slate-400 font-medium">قم بنسخ هذا الرابط ووضعه في إعدادات Webhooks بمتجر Wuilt لمزامنة الطلبات والمنتجات والعملاء لحظياً.</p>
+          </div>
+
+          <div class="pt-4 border-t border-white/5 grid grid-cols-2 gap-3">
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> Orders
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase">
+              <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span> Products
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase">
+              <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Customers
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase">
+              <span class="h-1.5 w-1.5 rounded-full bg-indigo-500"></span> Collections
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions Panel -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-6 md:p-8 space-y-6">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-50 rounded-xl shadow-sm border border-amber-100">
+              <i data-lucide="lightbulb" class="h-5 w-5 text-amber-600"></i>
+          </div>
+          <h2 class="text-xl font-black text-slate-900 tracking-tight">دليل التشغيل</h2>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">1</div>
+            <div>
+              <h4 class="text-sm font-black text-slate-800 mb-1">توليد API Key</h4>
+              <p class="text-xs text-slate-500 leading-relaxed font-medium">اذهب إلى لوحة تحكم Wuilt > المطورين > الرموز البرمجية وقم بإنشاء مفتاح جديد.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">2</div>
+            <div>
+              <h4 class="text-sm font-black text-slate-800 mb-1">نسخ Store ID</h4>
+              <p class="text-xs text-slate-500 leading-relaxed font-medium">يمكنك العثور على Store ID في رابط المتجر أو في إعدادات الحساب بـ Wuilt.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-700 transition-colors">3</div>
+            <div>
+              <h4 class="text-sm font-black text-slate-800 mb-1">اختبار ومزامنة</h4>
+              <p class="text-xs text-slate-500 leading-relaxed font-medium">اضغط "اختبار الاتصال" أولاً، ثم "مزامنة الآن" لجلب البيانات التاريخية.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyWebhook() {
+  const text = document.getElementById('webhook-text').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('تم نسخ الرابط بنجاح');
+  });
+}
+</script>
+{% endblock %}

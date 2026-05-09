@@ -1,16 +1,21 @@
 import json
+import hashlib
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Count, Q, Sum
+from django.db.models.functions import TruncDate
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import viewsets, decorators, response
 from apps.accounts.selectors import get_user_projects
 from apps.dashboards.services import get_real_estate_metrics
+from apps.finance.models import Transaction
 from apps.integrations.models import ApiConnection
 from apps.integrations.nakhba import DEFAULT_BASE_URL, NAKHBA_PROVIDER, masked_key, sync_nakhba_connection
 from apps.projects.models import Project
@@ -271,6 +276,140 @@ def _selected_project(request):
             return project
     return projects.filter(industrial_buildings__isnull=False).distinct().first() or projects.first()
 
+def _nakhba_client(project):
+    connection = ApiConnection.objects.filter(project=project, provider=NAKHBA_PROVIDER).order_by("-created_at").first()
+    if not connection:
+        return None, "لم يتم إعداد ربط نخبة تسكين API لهذا المشروع."
+    credentials = connection.credentials or {}
+    from apps.integrations.nakhba import NakhbaApiClient
+    client = NakhbaApiClient(credentials.get("base_url"), credentials.get("api_key"))
+    return client, None
+
+def _is_tenant_accounts_schema_cache_error(message):
+    if not message:
+        return False
+    text = str(message)
+    return "tenant_account_units" in text and "schema cache" in text
+
+def _local_tenant_accounts(project, q=""):
+    units = IndustrialUnitRecord.objects.filter(building__project=project).exclude(tenant_name="")
+    if q:
+        units = units.filter(Q(tenant_name__icontains=q) | Q(phone__icontains=q))
+
+    aggregated = (
+        units.values("tenant_name", "phone")
+        .annotate(units_count=Count("id"), due_total=Sum("remaining_amount"), total_price=Sum("annual_rent"))
+        .order_by("tenant_name")
+    )
+
+    tenants = list(Tenant.objects.filter(project=project).only("id", "name", "phone", "company_name", "activity_type"))
+    by_name = {t.name.strip().lower(): t for t in tenants if t.name}
+    by_phone = {t.phone.strip(): t for t in tenants if t.phone}
+
+    accounts = []
+    for row in aggregated:
+        tenant_name = (row.get("tenant_name") or "").strip()
+        phone = (row.get("phone") or "").strip()
+        tenant = by_phone.get(phone) or by_name.get(tenant_name.lower())
+        local_id = f"local-{tenant.id}" if tenant else ""
+        resolved_name = tenant_name or (tenant.name if tenant else "")
+        accounts.append({
+            "id": local_id,
+            "tenant_name": resolved_name,
+            "full_name": resolved_name,
+            "business_name": tenant.company_name if tenant else "",
+            "activity_type": tenant.activity_type if tenant else "",
+            "phone": phone or (tenant.phone if tenant else ""),
+            "units_count": row.get("units_count") or 0,
+            "total_price": row.get("total_price") or 0,
+            "remaining_total": row.get("due_total") or 0,
+        })
+    return accounts
+
+def _local_tenant_account_detail(project, tenant_account_id):
+    if not tenant_account_id.startswith("local-"):
+        return None
+    raw_pk = tenant_account_id.replace("local-", "", 1).strip()
+    if not raw_pk.isdigit():
+        return None
+    tenant = Tenant.objects.filter(project=project, pk=int(raw_pk)).first()
+    if not tenant:
+        return None
+
+    units_qs = IndustrialUnitRecord.objects.filter(building__project=project, tenant_name=tenant.name).select_related("building")
+    if tenant.phone:
+        units_qs = units_qs.filter(Q(phone=tenant.phone) | Q(phone=""))
+
+    units = []
+    for u in units_qs[:500]:
+        units.append({
+            "id": u.external_id,
+            "unit_id": u.external_id,
+            "building_number": u.building.external_number,
+            "unit_number": u.unit_number,
+            "area": float(u.area or 0),
+            "price": float(u.annual_rent or 0),
+            "status": u.status,
+        })
+
+    totals = units_qs.aggregate(
+        total_price=Sum("annual_rent"),
+        remaining_total=Sum("remaining_amount"),
+        units_count=Count("id"),
+    )
+
+    return {
+        "id": tenant_account_id,
+        "tenant_name": tenant.name,
+        "full_name": tenant.name,
+        "phone": tenant.phone,
+        "email": tenant.email,
+        "business_name": tenant.company_name,
+        "activity_type": tenant.activity_type,
+        "total_price": totals.get("total_price") or 0,
+        "remaining_total": totals.get("remaining_total") or 0,
+        "units_count": totals.get("units_count") or 0,
+        "units": units,
+        "invoices": [],
+    }
+
+def _normalize_tenant_account_detail(account):
+    if not isinstance(account, dict):
+        return {"full_name": "", "units": [], "invoices": []}
+
+    full_name = account.get("full_name") or account.get("tenant_name") or account.get("name") or ""
+    account["full_name"] = full_name
+    account["tenant_name"] = account.get("tenant_name") or full_name
+    account["business_name"] = account.get("business_name") or account.get("business") or ""
+    account["remaining_total"] = account.get("remaining_total") or account.get("due_total") or 0
+
+    units = account.get("units")
+    if not isinstance(units, list):
+        units = []
+        tenant_units = account.get("tenant_account_units")
+        if isinstance(tenant_units, list):
+            for row in tenant_units:
+                if not isinstance(row, dict):
+                    continue
+                unit_id = row.get("unit_id") or row.get("id")
+                inner = row.get("units") if isinstance(row.get("units"), dict) else {}
+                units.append({
+                    "id": unit_id,
+                    "unit_id": unit_id,
+                    "building_number": inner.get("building_number"),
+                    "unit_number": inner.get("unit_number"),
+                    "area": inner.get("area"),
+                    "price": inner.get("price"),
+                    "status": inner.get("status"),
+                    "activity": inner.get("activity"),
+                    "unit_type": inner.get("unit_type"),
+                })
+    account["units"] = units
+    account["units_count"] = account.get("units_count") or len(units)
+    if "invoices" not in account or not isinstance(account.get("invoices"), list):
+        account["invoices"] = []
+    return account
+
 
 def _status_label(status):
     return dict(IndustrialUnitRecord.Status.choices).get(status, status)
@@ -370,6 +509,7 @@ def dashboard_page(request):
     context = {
         "project": project,
         "projects": get_user_projects(request.user),
+        "load_charts": True,
         "buildings": IndustrialBuilding.objects.filter(project=project),
         "building_rows": building_rows,
         "units": units[:250],
@@ -393,6 +533,550 @@ def dashboard_page(request):
         "api_connection": ApiConnection.objects.filter(project=project, provider=NAKHBA_PROVIDER).order_by("-created_at").first(),
     }
     return render(request, "real_estate/dashboard.html", context)
+
+def _resolve_period(request):
+    today = timezone.localdate()
+    period = (request.GET.get("period") or "month").strip()
+    year = (request.GET.get("year") or "").strip()
+    month = (request.GET.get("month") or "").strip()
+    start_raw = (request.GET.get("start") or "").strip()
+    end_raw = (request.GET.get("end") or "").strip()
+
+    def _safe_int(value, default):
+        try:
+            return int(value)
+        except Exception:
+            return default
+
+    if period == "today":
+        start_date = end_date = today
+    elif period == "year":
+        y = _safe_int(year, today.year)
+        start_date = date(y, 1, 1)
+        end_date = date(y, 12, 31)
+    elif period == "month":
+        y = _safe_int(year, today.year)
+        m = _safe_int(month, today.month)
+        m = min(max(m, 1), 12)
+        start_date = date(y, m, 1)
+        end_date = (date(y + 1, 1, 1) - timedelta(days=1)) if m == 12 else (date(y, m + 1, 1) - timedelta(days=1))
+    elif period == "custom":
+        try:
+            start_date = date.fromisoformat(start_raw) if start_raw else today.replace(day=1)
+        except Exception:
+            start_date = today.replace(day=1)
+        try:
+            end_date = date.fromisoformat(end_raw) if end_raw else today
+        except Exception:
+            end_date = today
+        if end_date < start_date:
+            start_date, end_date = end_date, start_date
+    else:
+        period = "month"
+        start_date = today.replace(day=1)
+        end_date = today
+
+    naive_start = datetime.combine(start_date, time.min)
+    naive_end = datetime.combine(end_date + timedelta(days=1), time.min)
+    if timezone.is_aware(timezone.now()):
+        start_dt = timezone.make_aware(naive_start)
+        end_dt = timezone.make_aware(naive_end)
+    else:
+        start_dt = naive_start
+        end_dt = naive_end
+
+    return {
+        "period": period,
+        "year": _safe_int(year, today.year),
+        "month": _safe_int(month, today.month),
+        "start_date": start_date,
+        "end_date": end_date,
+        "start_dt": start_dt,
+        "end_dt": end_dt,
+    }
+
+@login_required
+def analytics_page(request):
+    project = _selected_project(request)
+    if not project:
+        return render(request, "real_estate/analytics.html", {"empty_project": True})
+
+    request.session["current_project_id"] = project.pk
+    period_ctx = _resolve_period(request)
+    start_date = period_ctx["start_date"]
+    end_date = period_ctx["end_date"]
+    start_dt = period_ctx["start_dt"]
+    end_dt = period_ctx["end_dt"]
+
+    txns = (
+        Transaction.objects.filter(project=project, date__range=[start_date, end_date])
+        .select_related("account", "category")
+        .order_by("-date", "-created_at")
+    )
+    income_types = [Transaction.TransactionType.INCOME, Transaction.TransactionType.DEPOSIT]
+    expense_types = [Transaction.TransactionType.EXPENSE, Transaction.TransactionType.WITHDRAWAL]
+
+    finance_totals = txns.aggregate(
+        income=Sum("amount_base_currency", filter=Q(transaction_type__in=income_types)),
+        expense=Sum("amount_base_currency", filter=Q(transaction_type__in=expense_types)),
+        count=Count("id"),
+    )
+    income_total = finance_totals["income"] or Decimal("0")
+    expense_total = finance_totals["expense"] or Decimal("0")
+
+    category_rows = (
+        txns.values("transaction_type", "category__name")
+        .annotate(total=Sum("amount_base_currency"))
+        .order_by("-total")[:15]
+    )
+    finance_by_category = [
+        {"type": row["transaction_type"], "name": row["category__name"] or "غير مصنف", "amount": float(row["total"] or 0)}
+        for row in category_rows
+    ]
+
+    daily_rows = (
+        txns.values("date")
+        .annotate(
+            income=Sum("amount_base_currency", filter=Q(transaction_type__in=income_types)),
+            expense=Sum("amount_base_currency", filter=Q(transaction_type__in=expense_types)),
+        )
+        .order_by("date")
+    )
+    finance_by_day = {row["date"]: {"income": float(row["income"] or 0), "expense": float(row["expense"] or 0)} for row in daily_rows}
+    days = []
+    cursor = start_date
+    while cursor <= end_date:
+        days.append(cursor)
+        cursor += timedelta(days=1)
+    finance_daily = [
+        {"date": d.isoformat(), "income": finance_by_day.get(d, {}).get("income", 0), "expense": finance_by_day.get(d, {}).get("expense", 0)}
+        for d in days
+    ]
+
+    all_units = IndustrialUnitRecord.objects.filter(building__project=project).select_related("building")
+    units_totals = all_units.aggregate(
+        units=Count("id"),
+        area=Sum("area"),
+        expected=Sum("annual_rent"),
+        paid=Sum("paid_amount"),
+        remaining=Sum("remaining_amount"),
+    )
+    status_counts = {row["status"]: row["count"] for row in all_units.values("status").annotate(count=Count("id"))}
+    rented = status_counts.get(IndustrialUnitRecord.Status.RENTED, 0)
+    reserved = status_counts.get(IndustrialUnitRecord.Status.RESERVED, 0)
+    vacant = status_counts.get(IndustrialUnitRecord.Status.VACANT, 0)
+    total_units = units_totals["units"] or 0
+    occupancy_rate = round(((rented + reserved) / total_units) * 100, 1) if total_units else 0
+
+    expected_total = units_totals["expected"] or Decimal("0")
+    paid_total = units_totals["paid"] or Decimal("0")
+    collection_rate = round(float((paid_total / expected_total) * 100), 1) if expected_total else 0
+
+    unit_updates = all_units.filter(updated_at__gte=start_dt, updated_at__lt=end_dt).count()
+    building_updates = IndustrialBuilding.objects.filter(project=project, updated_at__gte=start_dt, updated_at__lt=end_dt).count()
+
+    leads = IndustrialReservationLead.objects.filter(project=project, created_at__gte=start_dt, created_at__lt=end_dt)
+    customers = IndustrialCustomerProfile.objects.filter(project=project, created_at__gte=start_dt, created_at__lt=end_dt)
+
+    leads_daily = (
+        leads.annotate(day=TruncDate("created_at"))
+        .values("day")
+        .annotate(count=Count("id"))
+        .order_by("day")
+    )
+    customers_daily = (
+        customers.annotate(day=TruncDate("created_at"))
+        .values("day")
+        .annotate(count=Count("id"))
+        .order_by("day")
+    )
+    leads_by_day = {row["day"]: row["count"] for row in leads_daily}
+    customers_by_day = {row["day"]: row["count"] for row in customers_daily}
+
+    api_connection = ApiConnection.objects.filter(project=project, provider=NAKHBA_PROVIDER).order_by("-created_at").first()
+    raw_events = project.raw_api_events.filter(provider=NAKHBA_PROVIDER, received_at__gte=start_dt, received_at__lt=end_dt)
+    sync_logs = []
+    if api_connection:
+        sync_logs = list(api_connection.sync_logs.filter(started_at__gte=start_dt, started_at__lt=end_dt).order_by("-started_at")[:20])
+
+    chart_payload = {
+        "financeDaily": {
+            "labels": [row["date"] for row in finance_daily],
+            "income": [row["income"] for row in finance_daily],
+            "expense": [row["expense"] for row in finance_daily],
+        },
+        "unitStatus": {
+            "labels": [_status_label(IndustrialUnitRecord.Status.RENTED), _status_label(IndustrialUnitRecord.Status.RESERVED), _status_label(IndustrialUnitRecord.Status.VACANT)],
+            "values": [rented, reserved, vacant],
+        },
+        "growth": {
+            "labels": [d.isoformat() for d in days],
+            "leads": [leads_by_day.get(d, 0) for d in days],
+            "customers": [customers_by_day.get(d, 0) for d in days],
+        },
+    }
+
+    context = {
+        "project": project,
+        "projects": get_user_projects(request.user),
+        "load_charts": True,
+        "period_ctx": period_ctx,
+        "finance": {
+            "income_total": float(income_total),
+            "expense_total": float(expense_total),
+            "net_total": float(income_total - expense_total),
+            "count": finance_totals["count"] or 0,
+            "by_category": finance_by_category,
+            "recent": [
+                {
+                    "date": str(t.date),
+                    "type": t.transaction_type,
+                    "amount": float(t.amount_base_currency),
+                    "desc": t.description or "",
+                    "category": (t.category.name if t.category else "غير مصنف"),
+                }
+                for t in txns[:25]
+            ],
+        },
+        "real_estate": {
+            "total_units": total_units,
+            "rented": rented,
+            "reserved": reserved,
+            "vacant": vacant,
+            "occupancy_rate": occupancy_rate,
+            "expected_total": float(expected_total),
+            "paid_total": float(paid_total),
+            "remaining_total": float(units_totals["remaining"] or 0),
+            "total_area": float(units_totals["area"] or 0),
+            "collection_rate": collection_rate,
+            "buildings_count": IndustrialBuilding.objects.filter(project=project).count(),
+            "unit_updates": unit_updates,
+            "building_updates": building_updates,
+        },
+        "growth": {
+            "leads_count": leads.count(),
+            "customers_count": customers.count(),
+            "recent_leads": list(leads.order_by("-created_at").values("customer_name", "phone", "activity", "status", "created_at")[:10]),
+            "recent_customers": list(customers.order_by("-created_at").values("customer_name", "phone", "activity", "relationship_status", "created_at")[:10]),
+        },
+        "api": {
+            "connection": api_connection,
+            "raw_events_count": raw_events.count(),
+            "raw_events": list(raw_events.order_by("-received_at").values("endpoint", "received_at")[:15]),
+            "sync_logs": sync_logs,
+        },
+        "chart_payload": json.dumps(chart_payload, cls=DjangoJSONEncoder),
+    }
+    return render(request, "real_estate/analytics.html", context)
+
+
+@login_required
+def bookings_page(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+    
+    status = request.GET.get("status", "")
+    
+    bookings_data = []
+    error_message = None
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+
+    if request.method == "POST" and client:
+        action = request.POST.get("action")
+        booking_id = request.POST.get("booking_id")
+        if action in {"confirm", "cancel"} and booking_id:
+            try:
+                client.update_booking(booking_id, {"status": "confirmed" if action == "confirm" else "cancelled"})
+                messages.success(request, "تم تحديث حالة الحجز.")
+            except Exception as exc:
+                messages.error(request, f"فشل تحديث الحجز: {exc}")
+        return redirect("real_estate_bookings")
+
+    if client:
+        try:
+            params = {}
+            if status:
+                params["status"] = status
+            response = client.bookings(params=params)
+            bookings_data = response.get("data", [])
+        except Exception as e:
+            error_message = str(e)
+    
+    return render(request, "real_estate/bookings.html", {
+        "project": project,
+        "bookings": bookings_data,
+        "status_filter": status,
+        "error_message": error_message,
+    })
+
+@login_required
+def customers_page(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+
+    q = request.GET.get("q", "").strip()
+    customers_data = []
+    error_message = None
+
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+    elif client:
+        try:
+            params = {}
+            if q:
+                params["search"] = q
+            response = client.customers(params=params)
+            customers_data = response.get("data", [])
+        except Exception as exc:
+            error_message = str(exc)
+
+    return render(request, "real_estate/customers.html", {
+        "project": project,
+        "customers": customers_data,
+        "filters": {"q": q},
+        "error_message": error_message,
+    })
+
+@login_required
+def customer_detail_page(request, user_id):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+
+    customer_data = None
+    error_message = None
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+    elif client:
+        try:
+            payload = client.customer_detail(user_id)
+            customer_data = payload.get("data") if isinstance(payload, dict) and "data" in payload else payload
+        except Exception as exc:
+            error_message = str(exc)
+
+    return render(request, "real_estate/customer_detail.html", {
+        "project": project,
+        "customer": customer_data,
+        "user_id": user_id,
+        "error_message": error_message,
+    })
+
+@login_required
+def audit_log_page(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+
+    table = request.GET.get("table", "").strip()
+    action = request.GET.get("action", "").strip()
+    user_id = request.GET.get("user_id", "").strip()
+    limit = request.GET.get("limit", "").strip()
+
+    audit_rows = []
+    error_message = None
+
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+    elif client:
+        try:
+            params = {}
+            if table:
+                params["table"] = table
+            if action:
+                params["action"] = action
+            if user_id:
+                params["user_id"] = user_id
+            if limit:
+                params["limit"] = limit
+            response = client.audit_log(params=params)
+            audit_rows = response.get("data", [])
+        except Exception as exc:
+            error_message = str(exc)
+
+    return render(request, "real_estate/audit_log.html", {
+        "project": project,
+        "rows": audit_rows,
+        "filters": {"table": table, "action": action, "user_id": user_id, "limit": limit},
+        "error_message": error_message,
+    })
+
+@login_required
+def tenant_accounts_page(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+
+    q = request.GET.get("q", "").strip()
+    accounts = []
+    error_message = None
+    fallback_mode = False
+    fallback_reason = ""
+
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+    elif client:
+        try:
+            params = {}
+            if q:
+                params["search"] = q
+            response = client.tenant_accounts(params=params)
+            accounts = response.get("data", [])
+        except Exception as exc:
+            if _is_tenant_accounts_schema_cache_error(exc):
+                fallback_mode = True
+                fallback_reason = "API/tenant-accounts فيه مشكلة في علاقة الجداول داخل Supabase. تم عرض بديل محلي من بيانات المشروع."
+                accounts = _local_tenant_accounts(project, q=q)
+            else:
+                error_message = str(exc)
+
+    return render(request, "real_estate/tenant_accounts.html", {
+        "project": project,
+        "accounts": accounts,
+        "filters": {"q": q},
+        "error_message": error_message,
+        "fallback_mode": fallback_mode,
+        "fallback_reason": fallback_reason,
+    })
+
+@login_required
+def tenant_account_detail_page(request, tenant_account_id):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+
+    if tenant_account_id.startswith("local-"):
+        account = _local_tenant_account_detail(project, tenant_account_id)
+        return render(request, "real_estate/tenant_account_detail.html", {
+            "project": project,
+            "account": account,
+            "tenant_account_id": tenant_account_id,
+            "error_message": None if account else "لا يمكن عرض هذا الحساب المحلي.",
+            "is_local": True,
+        })
+
+    client, error = _nakhba_client(project)
+    if error:
+        return render(request, "real_estate/tenant_account_detail.html", {
+            "project": project,
+            "account": None,
+            "tenant_account_id": tenant_account_id,
+            "error_message": error,
+            "is_local": False,
+        })
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        try:
+            if action == "add_units":
+                raw_ids = request.POST.get("unit_ids", "")
+                unit_ids = [x.strip() for x in raw_ids.replace("\n", ",").split(",") if x.strip()]
+                if unit_ids:
+                    client.tenant_account_add_units(tenant_account_id, unit_ids)
+                    messages.success(request, "تم ربط الوحدات بحساب المستأجر.")
+            elif action == "remove_unit":
+                unit_id = request.POST.get("unit_id", "").strip()
+                if unit_id:
+                    client.tenant_account_remove_unit(tenant_account_id, unit_id)
+                    messages.success(request, "تم إزالة الوحدة من حساب المستأجر.")
+        except Exception as exc:
+            messages.error(request, f"فشل تنفيذ العملية: {exc}")
+        return redirect("real_estate_tenant_account_detail", tenant_account_id=tenant_account_id)
+
+    account = None
+    error_message = None
+    try:
+        payload = client.tenant_account_detail(tenant_account_id)
+        account = payload.get("data") if isinstance(payload, dict) and "data" in payload else payload
+        account = _normalize_tenant_account_detail(account)
+    except Exception as exc:
+        error_message = str(exc)
+
+    return render(request, "real_estate/tenant_account_detail.html", {
+        "project": project,
+        "account": account,
+        "tenant_account_id": tenant_account_id,
+        "error_message": error_message,
+        "is_local": False,
+    })
+
+@login_required
+def invoices_page(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+
+    tenant_account_id = request.GET.get("tenant_account_id", "").strip()
+    paid = request.GET.get("paid", "").strip()
+
+    invoices = []
+    error_message = None
+
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+    elif client:
+        try:
+            params = {}
+            if tenant_account_id:
+                params["tenant_account_id"] = tenant_account_id
+            if paid in {"true", "false"}:
+                params["paid"] = paid
+            response = client.invoices(params=params)
+            invoices = response.get("data", [])
+        except Exception as exc:
+            error_message = str(exc)
+
+    return render(request, "real_estate/invoices.html", {
+        "project": project,
+        "invoices": invoices,
+        "filters": {"tenant_account_id": tenant_account_id, "paid": paid},
+        "error_message": error_message,
+    })
+
+
+@login_required
+def users_page(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+    
+    users_data = []
+    error_message = None
+    
+    client, error = _nakhba_client(project)
+    if error:
+        error_message = error
+    elif client:
+        try:
+            response = client.users()
+            users_data = response.get("data", [])
+        except Exception as e:
+            error_message = str(e)
+    
+    return render(request, "real_estate/users.html", {
+        "project": project,
+        "users": users_data,
+        "error_message": error_message,
+    })
+
+
+@login_required
+def nakhba_api_docs(request):
+    project = _selected_project(request)
+    if not project:
+        return redirect("project_select")
+    return render(request, "real_estate/nakhba_api_docs.html", {
+        "project": project,
+        "base_url": DEFAULT_BASE_URL,
+    })
 
 
 @login_required

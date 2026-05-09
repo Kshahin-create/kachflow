@@ -1,51 +1,158 @@
 {% extends "base.html" %}
-{% block title %}مباني المدينة الصناعية{% endblock %}
+{% block title %}المباني | {{ project.name }}{% endblock %}
+
 {% block content %}
 {% if empty_project %}
-  <div class="panel">لا توجد مشاريع متاحة.</div>
-{% else %}
-<div class="space-y-6">
-  <section class="dashboard-hero">
-    <div>
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="project-type">مباني API</span>
-        <span class="project-status">{{ building_rows|length }} مبنى</span>
-      </div>
-      <h1 class="mt-3 text-3xl font-black text-slate-950">مباني {{ project.name }}</h1>
-      <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">عرض تشغيلي للمباني المسحوبة من نظام نخبة تسكين، مع الإشغال والإيرادات ومساحة كل مبنى.</p>
+  <div class="flex min-h-[400px] flex-col items-center justify-center rounded-3xl bg-white p-12 shadow-sm">
+    <div class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+      <i data-lucide="folder-open" class="h-10 w-10"></i>
     </div>
-    <a class="btn-secondary" href="{% url 'nakhba_api_settings' %}"><i data-lucide="refresh-cw" class="h-4 w-4"></i> مزامنة API</a>
-  </section>
+    <h2 class="mt-6 text-xl font-black text-slate-900">لا توجد مشاريع متاحة</h2>
+    <p class="mt-2 text-slate-500 text-center max-w-sm">يرجى اختيار مشروع نشط من القائمة الجانبية.</p>
+  </div>
+{% else %}
+<div class="space-y-8 pb-12" x-data="{ searchQuery: '' }">
+  <!-- Modern Header -->
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+          إدارة الأصول
+        </span>
+        <span class="rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/30">
+          {{ building_rows|length }} مبنى
+        </span>
+      </div>
+      <h1 class="mt-4 text-4xl lg:text-5xl font-black tracking-tight leading-none text-slate-50 drop-shadow-lg">{{ project.name }}</h1>
+      <p class="mt-4 text-slate-200 font-medium max-w-2xl text-lg opacity-90">عرض تفصيلي لكافة المباني والمنشآت التابعة للمشروع مع متابعة لحظية لحالة الإشغال والإيرادات.</p>
+    </div>
+    
+    <div class="relative z-10 flex flex-col sm:flex-row gap-4">
+      <div class="relative group min-w-[240px]">
+        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-emerald-400 transition-colors"></i>
+        <input 
+          type="text" 
+          x-model="searchQuery"
+          placeholder="ابحث عن مبنى..." 
+          class="w-full rounded-2xl bg-white/10 border border-white/20 pr-12 pl-4 py-4 text-sm font-bold text-white placeholder:text-slate-400 outline-none focus:bg-white/20 focus:border-emerald-500/50 transition-all backdrop-blur-md"
+        >
+      </div>
+      <a href="{% url 'nakhba_api_settings' %}" class="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-sm font-black text-white hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20 whitespace-nowrap">
+        <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+        مزامنة البيانات
+      </a>
+    </div>
+  </header>
 
-  <div class="building-grid">
+  <!-- Buildings Grid -->
+  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
     {% for row in building_rows %}
-      <article class="building-card">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <span class="building-number">{{ row.building.external_number|default:forloop.counter }}</span>
-            <h2>{{ row.building.name }}</h2>
-            <p>{{ row.building.activity|default:"نشاط غير محدد" }}</p>
+      <article 
+        class="group relative bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden"
+        x-show="searchQuery === '' || '{{ row.building.name }}'.includes(searchQuery)"
+      >
+        <!-- Background Decorative Element -->
+        <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-slate-50 group-hover:bg-emerald-50 transition-colors duration-500"></div>
+
+        <div class="relative">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between mb-8">
+            <div class="flex items-center gap-4">
+              <div class="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 font-black text-xl shadow-xl group-hover:rotate-6 transition-transform duration-500">
+                {{ row.building.external_number|default:forloop.counter }}
+              </div>
+              <div>
+                <h2 class="text-xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors">{{ row.building.name }}</h2>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ row.building.activity|default:"نشاط عام" }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Radial Occupancy -->
+            <div class="relative h-16 w-16 flex items-center justify-center">
+              <svg class="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
+                <path class="stroke-slate-100" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="stroke-emerald-500 transition-all duration-1000 ease-out" stroke-width="3" stroke-dasharray="{{ row.occupancy }}, 100" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute flex flex-col items-center leading-none">
+                <span class="text-[10px] font-black text-emerald-600">{{ row.occupancy }}%</span>
+              </div>
+            </div>
           </div>
-          <span class="occupancy-ring" style="--value: {{ row.occupancy }}%">{{ row.occupancy }}%</span>
+
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-3 gap-3 mb-8">
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 group-hover:bg-white group-hover:border-slate-200 transition-all">
+              <span class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">الوحدات</span>
+              <span class="mt-1 block text-xl font-black text-slate-900">{{ row.total }}</span>
+            </div>
+            <div class="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 group-hover:bg-emerald-50 transition-all">
+              <span class="block text-[10px] font-black text-emerald-600/70 uppercase tracking-tighter">مؤجر</span>
+              <span class="mt-1 block text-xl font-black text-emerald-700">{{ row.rented }}</span>
+            </div>
+            <div class="bg-rose-50/50 rounded-2xl p-4 border border-rose-100 group-hover:bg-rose-50 transition-all">
+              <span class="block text-[10px] font-black text-rose-600/70 uppercase tracking-tighter">شاغر</span>
+              <span class="mt-1 block text-xl font-black text-rose-700">{{ row.vacant }}</span>
+            </div>
+          </div>
+
+          <!-- Financial Summary -->
+          <div class="space-y-4 mb-8">
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div class="flex items-center gap-3">
+                <i data-lucide="banknote" class="h-4 w-4 text-emerald-600"></i>
+                <span class="text-xs font-bold text-slate-500">الإيجار السنوي</span>
+              </div>
+              <span class="text-sm font-black text-slate-950">{{ row.annual_rent|floatformat:0 }} <small class="text-[10px] font-bold text-slate-400">ريال</small></span>
+            </div>
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div class="flex items-center gap-3">
+                <i data-lucide="maximize" class="h-4 w-4 text-amber-500"></i>
+                <span class="text-xs font-bold text-slate-500">إجمالي المساحة</span>
+              </div>
+              <span class="text-sm font-black text-slate-950">{{ row.area|floatformat:0 }} <small class="text-[10px] font-bold text-slate-400">م²</small></span>
+            </div>
+          </div>
+
+          <!-- Action -->
+          <a 
+            href="{% url 'real_estate_units' %}?building={{ row.building.id }}" 
+            class="flex items-center justify-center gap-3 w-full rounded-2xl bg-slate-900 py-4 text-sm font-black text-white hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-slate-200 group-hover:shadow-emerald-200"
+          >
+            <i data-lucide="layout-list" class="h-4 w-4 text-amber-400 group-hover:text-white transition-colors"></i>
+            عرض الوحدات والتفاصيل
+          </a>
         </div>
-        <div class="building-progress"><span style="width: {{ row.occupancy }}%"></span></div>
-        <div class="building-stats">
-          <span>الوحدات <strong>{{ row.total }}</strong></span>
-          <span>مؤجر <strong>{{ row.rented }}</strong></span>
-          <span>محجوز <strong>{{ row.reserved }}</strong></span>
-          <span>متاح <strong>{{ row.vacant }}</strong></span>
-          <span>المساحة <strong>{{ row.area|floatformat:0 }}</strong></span>
-          <span>الإيجار <strong>{{ row.annual_rent|floatformat:0 }}</strong></span>
-        </div>
-        <a class="btn-secondary mt-4 w-full" href="{% url 'real_estate_units' %}?building={{ row.building.id }}">
-          <i data-lucide="warehouse" class="h-4 w-4"></i>
-          عرض الوحدات
-        </a>
       </article>
     {% empty %}
-      <div class="panel empty">لا توجد مباني بعد. شغّل مزامنة API أولًا.</div>
+      <div class="col-span-full py-24 text-center">
+        <div class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-slate-300 mb-6">
+          <i data-lucide="building" class="h-12 w-12"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">لا توجد مباني مسجلة</h3>
+        <p class="text-slate-500 mt-2">ابدأ بمزامنة البيانات من نظام نخبة تسكين</p>
+      </div>
     {% endfor %}
   </div>
 </div>
 {% endif %}
+
+<style>
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .building-grid article {
+    animation: slideIn 0.5s ease-out forwards;
+  }
+</style>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
 {% endblock %}

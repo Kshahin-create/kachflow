@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}العملاء | {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Customers API</span>
+      </div>
+      <h1 class="mt-4 text-4xl font-black tracking-tight text-slate-50 md:text-5xl drop-shadow-lg">العملاء</h1>
+      <p class="mt-4 text-lg font-medium text-slate-200/90 leading-relaxed max-w-2xl">قائمة العملاء (Leads/Customers) القادمة من النظام الخارجي مع البحث السريع.</p>
+    </div>
+    <form method="get" class="relative z-10 flex w-full lg:w-auto gap-3">
+      <div class="relative w-full lg:w-[360px] group">
+        <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-emerald-400 transition-colors"></i>
+        <input name="q" value="{{ filters.q }}" placeholder="ابحث بالاسم، الجوال، النشاط..." class="w-full rounded-2xl bg-white/10 border border-white/20 pr-12 pl-4 py-4 text-sm font-bold text-white placeholder:text-slate-400 outline-none focus:bg-white/20 focus:border-emerald-500/50 transition-all backdrop-blur-md">
+      </div>
+      <button type="submit" class="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-sm font-black text-white hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20 whitespace-nowrap">
+        <i data-lucide="filter" class="h-4 w-4"></i>
+        بحث
+      </button>
+    </form>
+  </header>
+
+  {% if error_message %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <h3 class="text-sm font-black text-rose-900">فشل جلب العملاء من API</h3>
+        <p class="mt-1 text-xs font-bold text-rose-700/80">{{ error_message }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    {% for c in customers %}
+      <article class="group bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 shadow-xl group-hover:rotate-6 transition-transform duration-500">
+              <i data-lucide="user" class="h-7 w-7"></i>
+            </div>
+            <div class="min-w-0">
+              <h2 class="text-xl font-black text-slate-900 truncate">{{ c.full_name|default:"عميل" }}</h2>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate mt-1">{{ c.business_name|default:"-" }}</p>
+            </div>
+          </div>
+          <span class="rounded-full bg-slate-50 text-[10px] font-black text-slate-600 px-3 py-1.5 border border-slate-100">API</span>
+        </div>
+
+        <div class="mt-8 grid grid-cols-2 gap-3">
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+              <i data-lucide="phone" class="h-3 w-3"></i> الجوال
+            </div>
+            <span class="text-xs font-black text-slate-900">{{ c.phone|default:"-" }}</span>
+          </div>
+          <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+            <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+              <i data-lucide="briefcase" class="h-3 w-3"></i> النشاط
+            </div>
+            <span class="text-xs font-black text-slate-900 truncate">{{ c.activity_type|default:"-" }}</span>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between gap-4">
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">ID: {{ c.user_id|default:"-" }}</span>
+          {% if c.user_id %}
+            <a href="{% url 'real_estate_customer_detail' c.user_id %}" class="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-xs font-black text-white hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200">
+              <i data-lucide="external-link" class="h-4 w-4 text-amber-400"></i>
+              عرض التفاصيل
+            </a>
+          {% else %}
+            <span class="text-xs font-bold text-slate-400">بدون معرف</span>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <div class="col-span-full py-24 text-center">
+        <div class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-slate-300 mb-6">
+          <i data-lucide="users" class="h-12 w-12"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">لا يوجد عملاء</h3>
+        <p class="text-slate-500 mt-2">جرّب تغيير عبارة البحث أو قم بتحديث إعدادات الربط.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
+{% endblock %}

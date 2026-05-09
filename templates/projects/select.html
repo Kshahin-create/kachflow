@@ -14,24 +14,47 @@
   </section>
 
   {% if projects %}
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
       {% for project in projects %}
-        <form method="post" class="project-card">
+        <form method="post" class="panel group relative flex flex-col p-8 transition-all hover:border-emerald-500/30">
           {% csrf_token %}
           <input type="hidden" name="project" value="{{ project.id }}">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="project-type">{{ project.get_project_type_display }}</div>
-              <h2 class="mt-2 text-xl font-extrabold text-slate-950">{{ project.name }}</h2>
-              <p class="mt-2 line-clamp-2 min-h-10 text-sm leading-6 text-slate-600">{{ project.description|default:"بيئة عمل مستقلة لهذا المشروع." }}</p>
+          
+          <div class="flex items-start justify-between">
+            <div class="h-16 w-16 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 shadow-xl group-hover:scale-110 transition-transform">
+              <i data-lucide="folder-kanban" class="h-8 w-8"></i>
             </div>
-            <span class="project-status">{{ project.get_status_display }}</span>
+            <span class="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black text-emerald-600 border border-emerald-500/20 uppercase tracking-widest">
+              {{ project.get_status_display }}
+            </span>
           </div>
-          <div class="mt-6 grid grid-cols-2 gap-3 text-sm">
-            <div class="metric-chip"><span>العملة</span><strong>{{ project.base_currency }}</strong></div>
-            <div class="metric-chip"><span>الدولة</span><strong>{{ project.country|default:"SA" }}</strong></div>
+
+          <div class="mt-8 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ project.get_project_type_display }}</span>
+            </div>
+            <h2 class="mt-2 text-2xl font-black text-slate-900 leading-tight">{{ project.name }}</h2>
+            <p class="mt-4 text-sm font-medium text-slate-500 leading-relaxed line-clamp-3">
+              {{ project.description|default:"بيئة عمل مستقلة مخصصة لإدارة العمليات والمالية لهذا المشروع بشكل كامل." }}
+            </p>
           </div>
-          <button class="btn-primary mt-6 w-full" type="submit">دخول المشروع</button>
+
+          <div class="mt-8 grid grid-cols-2 gap-4">
+            <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+              <span class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">العملة النشطة</span>
+              <strong class="mt-1 block text-sm font-black text-slate-900">{{ project.base_currency }}</strong>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-4 border border-slate-100">
+              <span class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter">المنطقة</span>
+              <strong class="mt-1 block text-sm font-black text-slate-900">{{ project.country|default:"SA" }}</strong>
+            </div>
+          </div>
+
+          <button class="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-4 text-sm font-black text-white hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10" type="submit">
+            <span>دخول مساحة العمل</span>
+            <i data-lucide="arrow-left" class="h-4 w-4 text-amber-400"></i>
+          </button>
         </form>
       {% endfor %}
     </div>

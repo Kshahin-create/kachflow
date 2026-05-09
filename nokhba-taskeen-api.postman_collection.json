@@ -1,0 +1,631 @@
+{
+  "info": {
+    "name": "نخبة تسكين API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://wqzseofoerwevfebguse.supabase.co/functions/v1/api"
+    },
+    {
+      "key": "apiKey",
+      "value": "nkb_live_REPLACE_ME"
+    }
+  ],
+  "item": [
+    {
+      "name": "GET /buildings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/buildings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "buildings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /buildings/:number",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/buildings/:number",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "buildings",
+            ":number"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /units",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/units",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "units"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /units/:id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/units/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "units",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /bookings",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customer\": {\n    \"fullName\": \"أحمد محمد\",\n    \"phone\": \"+966500000000\",\n    \"email\": \"ahmad@example.com\",\n    \"business\": \"ورشة النخبة\",\n    \"notes\": \"أحتاج وحدتين متجاورتين\"\n  },\n  \"units\": [\n    {\n      \"buildingNumber\": 1,\n      \"buildingType\": \"محلات قطع غيار\",\n      \"unitNumber\": 101,\n      \"unitType\": \"ركنية\",\n      \"area\": 50,\n      \"activity\": \"قطع غيار\",\n      \"price\": 60000\n    }\n  ],\n  \"message\": \"السلام عليكم، أرغب في حجز الوحدات التالية...\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/bookings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /tenants",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tenants",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenants"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /tenants",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"unit_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"tenant_name\": \"أحمد محمد\",\n  \"business_name\": \"ورشة النخبة\",\n  \"phone\": \"+966500000000\",\n  \"activity_type\": \"قطع غيار\",\n  \"start_date\": \"2026-01-01\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tenants",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenants"
+          ]
+        }
+      }
+    },
+    {
+      "name": "PATCH /tenants/:id",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+966511111111\",\n  \"notes\": \"تم تحديث الرقم\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tenants/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenants",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /tenants/:id",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tenants/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenants",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/stats",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "stats"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /units",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"building_number\": 1,\n  \"unit_number\": 105,\n  \"unit_type\": \"ركنية\",\n  \"area\": 50,\n  \"activity\": \"قطع غيار\",\n  \"price\": 60000,\n  \"status\": \"available\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/units",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "units"
+          ]
+        }
+      }
+    },
+    {
+      "name": "PATCH /units/:id",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 65000,\n  \"status\": \"available\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/units/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "units",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /units/:id",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/units/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "units",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /bookings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bookings",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /bookings/:id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bookings/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "PATCH /bookings/:id",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"confirmed\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/bookings/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "bookings",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /customers",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/customers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "customers"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /customers/:user_id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/customers/:user_id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "customers",
+            ":user_id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /audit-log",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/audit-log",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "audit-log"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /tenant-accounts",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tenant-accounts",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenant-accounts"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /tenant-accounts/:id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tenant-accounts/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenant-accounts",
+            ":id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "POST /tenant-accounts/:id/units",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"unit_ids\": [\n    \"660e8400-e29b-41d4-a716-446655440111\",\n    \"660e8400-e29b-41d4-a716-446655440222\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tenant-accounts/:id/units",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenant-accounts",
+            ":id",
+            "units"
+          ]
+        }
+      }
+    },
+    {
+      "name": "DELETE /tenant-accounts/:id/units/:unit_id",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tenant-accounts/:id/units/:unit_id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenant-accounts",
+            ":id",
+            "units",
+            ":unit_id"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /invoices",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/invoices",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "invoices"
+          ]
+        }
+      }
+    }
+  ]
+}

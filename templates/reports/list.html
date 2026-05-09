@@ -1,1 +1,149 @@
-{% extends "base.html" %}{% block content %}<div class="mb-5 flex items-center justify-between"><h1 class="text-2xl font-bold">التقارير</h1><a class="btn-primary" href="{% url 'report_create' %}">تقرير جديد</a></div><div class="panel">{% for r in reports %}<div class="row"><span>{{ r.title }}</span><span>{{ r.status }}</span></div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}التقارير{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Reports</span>
+        <span class="rounded-full bg-slate-700/50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-300 border border-slate-600/30">{{ reports_total }} تقرير</span>
+      </div>
+      <h1 class="mt-4 text-4xl font-black tracking-tight leading-none text-slate-50 drop-shadow-lg">التقارير</h1>
+      <p class="mt-4 text-slate-200 font-medium max-w-2xl text-lg opacity-90">عرض وإدارة التقارير التفصيلية مع بحث سريع وتجهيز للطباعة.</p>
+    </div>
+
+    <div class="relative z-10 flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+      <a href="{% url 'report_create' %}" class="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-black text-slate-900 hover:bg-slate-50 transition-all shadow-xl">
+        <i data-lucide="file-plus-2" class="h-4 w-4"></i>
+        تقرير جديد
+      </a>
+    </div>
+  </header>
+
+  <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">الإجمالي</span>
+      <div class="mt-2 text-3xl font-black text-slate-950">{{ reports_total }}</div>
+    </div>
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Generated</span>
+      <div class="mt-2 text-3xl font-black text-emerald-600">{{ summary.generated }}</div>
+    </div>
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending</span>
+      <div class="mt-2 text-3xl font-black text-amber-600">{{ summary.pending }}</div>
+    </div>
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Other</span>
+      <div class="mt-2 text-3xl font-black text-slate-600">{{ summary.other }}</div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+    <div class="p-6 sm:p-8 border-b border-slate-100">
+      <form method="get" class="flex flex-col md:flex-row md:items-center gap-4">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-slate-400 focus-within:border-emerald-500/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all">
+            <i data-lucide="search" class="h-4 w-4"></i>
+            <input name="q" value="{{ filters.q }}" placeholder="ابحث بالعنوان أو المشروع أو النوع..." class="w-full bg-transparent text-sm font-bold text-slate-700 outline-none placeholder:text-slate-400">
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" class="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-black text-white hover:bg-emerald-600 transition-all">
+            <i data-lucide="filter" class="h-4 w-4 text-amber-400"></i>
+            تطبيق
+          </button>
+          {% if filters.q %}
+            <a href="{% url 'reports' %}" class="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-black text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all">
+              <i data-lucide="x" class="h-4 w-4"></i>
+              مسح
+            </a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <div class="hidden lg:block">
+      <div class="overflow-x-auto">
+        <table class="w-full text-right border-collapse">
+          <thead>
+            <tr class="bg-slate-50/50 border-b border-slate-100">
+              <th class="p-6 text-[10px] font-black text-slate-400 uppercase">العنوان</th>
+              <th class="p-6 text-[10px] font-black text-slate-400 uppercase">المشروع</th>
+              <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الفترة</th>
+              <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الحالة</th>
+              <th class="p-6 text-[10px] font-black text-slate-400 uppercase ltr-input" dir="ltr">Created</th>
+              <th class="p-6 text-[10px] font-black text-slate-400 uppercase"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            {% for r in reports %}
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="p-6">
+                  <div class="min-w-0">
+                    <div class="text-sm font-black text-slate-950 truncate">{{ r.title }}</div>
+                    <div class="mt-1 text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{{ r.get_report_type_display }}</div>
+                  </div>
+                </td>
+                <td class="p-6 text-xs font-bold text-slate-700">{{ r.project.name|default:"-" }}</td>
+                <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ r.period_start }} → {{ r.period_end }}</td>
+                <td class="p-6">
+                  <span class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border {% if r.status == 'generated' %}bg-emerald-50 text-emerald-600 border-emerald-100{% elif r.status == 'pending' %}bg-amber-50 text-amber-700 border-amber-100{% else %}bg-slate-50 text-slate-600 border-slate-100{% endif %}">
+                    {{ r.status }}
+                  </span>
+                </td>
+                <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+                <td class="p-6">
+                  <a href="{% url 'report_detail' r.id %}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white hover:bg-emerald-600 transition-all">
+                    <i data-lucide="arrow-up-left" class="h-4 w-4"></i>
+                    فتح
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="p-12 text-center text-slate-500 font-bold">لا توجد تقارير مطابقة.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="lg:hidden">
+      <div class="divide-y divide-slate-100">
+        {% for r in reports %}
+          <a href="{% url 'report_detail' r.id %}" class="block p-6 hover:bg-slate-50/50 transition-colors">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="text-base font-black text-slate-950 truncate">{{ r.title }}</div>
+                <div class="mt-2 flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <span class="rounded-lg bg-slate-50 border border-slate-100 px-2 py-1">{{ r.get_report_type_display }}</span>
+                  <span class="rounded-lg bg-slate-50 border border-slate-100 px-2 py-1">{{ r.project.name|default:"-" }}</span>
+                </div>
+                <div class="mt-3 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ r.period_start }} → {{ r.period_end }}</div>
+              </div>
+              <div class="shrink-0 text-left">
+                <span class="inline-flex px-2.5 py-1.5 rounded-lg text-[10px] font-black border {% if r.status == 'generated' %}bg-emerald-50 text-emerald-600 border-emerald-100{% elif r.status == 'pending' %}bg-amber-50 text-amber-700 border-amber-100{% else %}bg-slate-50 text-slate-600 border-slate-100{% endif %}">
+                  {{ r.status }}
+                </span>
+                <div class="mt-2 text-[10px] font-black text-slate-400 ltr-input" dir="ltr">{{ r.created_at|date:"Y-m-d" }}</div>
+              </div>
+            </div>
+          </a>
+        {% empty %}
+          <div class="p-12 text-center">
+            <div class="mx-auto h-16 w-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300">
+              <i data-lucide="file-text" class="h-8 w-8"></i>
+            </div>
+            <div class="mt-5 text-slate-700 font-black">لا توجد تقارير بعد</div>
+            <div class="mt-2 text-slate-500 text-sm font-bold">ابدأ بإنشاء تقرير جديد من الزر بالأعلى.</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

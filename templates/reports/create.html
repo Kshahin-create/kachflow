@@ -1,1 +1,127 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">إنشاء تقرير</h1><div class="panel">MVP يعرض التقارير كصفحات HTML، وتصدير PDF يمكن إضافته لاحقًا.</div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}إنشاء تقرير جديد{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <section class="dashboard-hero bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-3">
+          <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+            Analytics Engine
+          </span>
+          <span class="rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/30">
+            Reporting Tool
+          </span>
+        </div>
+        <h1 class="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">
+          إنشاء تقرير تفصيلي
+        </h1>
+        <p class="mt-4 text-lg font-medium text-slate-400 leading-relaxed">
+          قم بتوليد تقارير شاملة تربط بين البيانات المالية، الأداء العقاري، ونمو العملاء.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <form method="post" class="grid gap-6 lg:grid-cols-[1fr_.4fr]">
+    {% csrf_token %}
+    <div class="panel p-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
+      <h2 class="text-xl font-black text-slate-950 flex items-center gap-3 mb-8">
+        <i data-lucide="file-text" class="h-6 w-6 text-emerald-600"></i>
+        إعدادات التقرير الشامل
+      </h2>
+      
+      <div class="space-y-8">
+        <!-- Project Selection -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <i data-lucide="folder" class="h-4 w-4 text-amber-500"></i>
+            المشروع المستهدف
+          </h3>
+          <select name="project" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            {% for p in projects %}
+              <option value="{{ p.id }}">{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Report Title -->
+        <div class="space-y-4">
+          <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <i data-lucide="type" class="h-4 w-4 text-amber-500"></i>
+            عنوان التقرير
+          </h3>
+          <input type="text" name="title" placeholder="مثال: التقرير الختامي لشهر أبريل 2026" required class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-2">
+          <div class="space-y-4">
+            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+              <i data-lucide="layers" class="h-4 w-4 text-amber-500"></i>
+              نوع التقرير
+            </h3>
+            <div class="grid gap-3">
+              <label class="group relative flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 p-4 transition-all hover:border-emerald-500/30 hover:bg-emerald-50/10">
+                <input type="radio" name="report_type" value="project_profit_loss" class="h-4 w-4 border-slate-300 text-emerald-600 focus:ring-emerald-500" checked>
+                <div>
+                  <span class="block text-sm font-black text-slate-900">تقرير تفصيلي شامل</span>
+                  <span class="block text-[10px] font-bold text-slate-400 uppercase">Detailed P&L + Operations</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+              <i data-lucide="calendar" class="h-4 w-4 text-amber-500"></i>
+              الفترة الزمنية
+            </h3>
+            <div class="space-y-3">
+              <div class="relative">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">من</span>
+                <input type="date" name="start_date" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-12 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+              </div>
+              <div class="relative">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">إلى</span>
+                <input type="date" name="end_date" required class="w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-12 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12 flex items-center gap-4 border-t border-slate-100 pt-8">
+        <button type="submit" class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-10 py-4 text-sm font-black text-white hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10">
+          <i data-lucide="sparkles" class="h-4 w-4 text-amber-400"></i>
+          توليد التقرير التفصيلي
+        </button>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div class="panel p-6 bg-emerald-600 text-white border-none shadow-xl rounded-3xl">
+        <h2 class="text-lg font-black text-white flex items-center gap-3 mb-4">
+          <i data-lucide="info" class="h-5 w-5 text-emerald-200"></i>
+          ماذا سيتضمن التقرير؟
+        </h2>
+        <ul class="space-y-4">
+          <li class="flex gap-3">
+            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-300 shrink-0 mt-0.5"></i>
+            <span class="text-xs font-bold leading-relaxed">تحليل مالي كامل (دخل، مصروفات، صافي ربح) خلال الفترة المختارة.</span>
+          </li>
+          <li class="flex gap-3">
+            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-300 shrink-0 mt-0.5"></i>
+            <span class="text-xs font-bold leading-relaxed">إحصائيات الإشغال والتحصيل العقاري لكل مبنى على حدة.</span>
+          </li>
+          <li class="flex gap-3">
+            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-300 shrink-0 mt-0.5"></i>
+            <span class="text-xs font-bold leading-relaxed">سجل بأهم المعاملات المالية التي تمت خلال هذه الفترة.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,81 +1,229 @@
 {% extends "base.html" %}
-{% block title %}وحدات المدينة الصناعية{% endblock %}
+{% block title %}الوحدات | {{ project.name }}{% endblock %}
+
 {% block content %}
 {% if empty_project %}
-  <div class="panel">لا توجد مشاريع متاحة.</div>
-{% else %}
-<div class="space-y-6">
-  <section class="dashboard-hero">
-    <div>
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="project-type">وحدات API</span>
-        <span class="project-status">{{ totals.count|default:0 }} وحدة</span>
-      </div>
-      <h1 class="mt-3 text-3xl font-black text-slate-950">وحدات {{ project.name }}</h1>
-      <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">كل الوحدات المسحوبة من نظام نخبة تسكين، مع فلترة حسب المبنى والحالة والنشاط وبحث مباشر بالوحدة أو المستأجر.</p>
+  <div class="flex min-h-[400px] flex-col items-center justify-center rounded-3xl bg-white p-12 shadow-sm">
+    <div class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+      <i data-lucide="folder-open" class="h-10 w-10"></i>
     </div>
-    <a class="btn-secondary" href="{% url 'nakhba_api_settings' %}"><i data-lucide="plug-zap" class="h-4 w-4"></i> إعداد API</a>
-  </section>
+    <h2 class="mt-6 text-xl font-black text-slate-900">لا توجد مشاريع متاحة</h2>
+    <p class="mt-2 text-slate-500 text-center max-w-sm">يرجى اختيار مشروع نشط من القائمة الجانبية.</p>
+  </div>
+{% else %}
+<div class="space-y-8 pb-12" x-data="{ showFilters: false }">
+  <!-- Modern Header -->
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+          إدارة الوحدات
+        </span>
+        <span class="rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/30">
+          {{ totals.count|default:0 }} وحدة
+        </span>
+      </div>
+      <h1 class="mt-4 text-4xl lg:text-5xl font-black tracking-tight leading-none text-slate-50 drop-shadow-lg">وحدات {{ project.name }}</h1>
+      <p class="mt-4 text-slate-200 font-medium max-w-2xl text-lg opacity-90">متابعة دقيقة لكل وحدة عقارية، مع إمكانية الفلترة المتقدمة والبحث السريع عن المستأجرين.</p>
+    </div>
+    
+    <div class="relative z-10 flex flex-col sm:flex-row gap-4">
+      <button @click="showFilters = !showFilters" class="flex items-center justify-center gap-2 rounded-2xl bg-white/10 border border-white/20 px-8 py-4 text-sm font-black text-white hover:bg-white/20 transition-all backdrop-blur-md">
+        <i data-lucide="filter" class="h-4 w-4"></i>
+        <span x-text="showFilters ? 'إخفاء الفلاتر' : 'إظهار الفلاتر'"></span>
+      </button>
+      <a href="{% url 'nakhba_api_settings' %}" class="flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-sm font-black text-white hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20 whitespace-nowrap">
+        <i data-lucide="settings" class="h-4 w-4"></i>
+        إعدادات API
+      </a>
+    </div>
+  </header>
 
+  <!-- Key Metrics -->
   <div class="grid gap-4 md:grid-cols-3">
-    <div class="panel metric-panel"><span>عدد الوحدات</span><strong>{{ totals.count|default:0 }}</strong></div>
-    <div class="panel metric-panel"><span>إجمالي الإيجار</span><strong>{{ totals.rent|floatformat:0 }} ريال</strong></div>
-    <div class="panel metric-panel"><span>إجمالي المساحة</span><strong>{{ totals.area|floatformat:0 }} م²</strong></div>
+    <div class="relative overflow-hidden bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-amber-400 transition-all duration-500">
+          <i data-lucide="layout-grid" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">عدد الوحدات</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.count|default:0 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="relative overflow-hidden bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
+          <i data-lucide="banknote" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي الإيجار</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.rent|floatformat:0 }} <small class="text-xs">ريال</small></h3>
+        </div>
+      </div>
+    </div>
+    <div class="relative overflow-hidden bg-white rounded-3xl p-6 border border-slate-200 shadow-sm group hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center gap-4">
+        <div class="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500">
+          <i data-lucide="maximize" class="h-6 w-6"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي المساحة</span>
+          <h3 class="text-2xl font-black text-slate-900 mt-0.5">{{ totals.area|floatformat:0 }} <small class="text-xs">م²</small></h3>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <form method="get" class="filter-bar">
-    <input name="q" value="{{ filters.q }}" class="input" placeholder="بحث بالوحدة أو المستأجر أو الجوال">
-    <select name="building" class="input">
-      <option value="">كل المباني</option>
-      {% for building in buildings %}
-        <option value="{{ building.id }}" {% if filters.building == building.id|stringformat:"s" %}selected{% endif %}>{{ building.name }}</option>
-      {% endfor %}
-    </select>
-    <select name="status" class="input">
-      <option value="">كل الحالات</option>
-      {% for value,label in status_choices %}
-        <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-    <select name="activity" class="input">
-      <option value="">كل الأنشطة</option>
-      {% for item in activities %}
-        <option value="{{ item }}" {% if filters.activity == item %}selected{% endif %}>{{ item }}</option>
-      {% endfor %}
-    </select>
-    <button class="btn-primary" type="submit"><i data-lucide="filter" class="h-4 w-4"></i> فلترة</button>
-  </form>
+  <!-- Advanced Filters -->
+  <div class="panel p-8 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm" x-show="showFilters" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+    <form method="get" class="space-y-6">
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">بحث سريع</label>
+          <div class="relative group">
+            <i data-lucide="search" class="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors"></i>
+            <input name="q" value="{{ filters.q }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 pr-11 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all" placeholder="رقم الوحدة، المستأجر...">
+          </div>
+        </div>
 
-  <div class="unit-catalog">
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">المبنى</label>
+          <select name="building" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            <option value="">كل المباني</option>
+            {% for building in buildings %}
+              <option value="{{ building.id }}" {% if filters.building == building.id|stringformat:"s" %}selected{% endif %}>{{ building.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">حالة الوحدة</label>
+          <select name="status" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            <option value="">كل الحالات</option>
+            {% for value,label in status_choices %}
+              <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">نوع النشاط</label>
+          <select name="activity" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            <option value="">كل الأنشطة</option>
+            {% for item in activities %}
+              <option value="{{ item }}" {% if filters.activity == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-50">
+        <a href="{% url 'real_estate_units' %}" class="px-6 py-3 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">تصفير الفلاتر</a>
+        <button type="submit" class="flex items-center gap-2 rounded-xl bg-slate-900 px-10 py-3 text-sm font-black text-white hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200">
+          <i data-lucide="filter" class="h-4 w-4"></i>
+          تطبيق الفلترة
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Units Grid -->
+  <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
     {% for unit in units %}
-      <article class="unit-card">
-        <div class="unit-card-head">
-          <div>
-            <span>{{ unit.building.name }}</span>
-            <h2>وحدة {{ unit.unit_number }}</h2>
+      <article class="group bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+        <div class="relative">
+          <!-- Card Header -->
+          <div class="flex items-start justify-between mb-8">
+            <div class="flex items-center gap-4">
+              <div class="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 font-black text-xl shadow-xl group-hover:rotate-6 transition-transform duration-500">
+                <i data-lucide="box" class="h-7 w-7"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ unit.building.name }}</span>
+                <h2 class="text-xl font-black text-slate-900 leading-none mt-1">وحدة {{ unit.unit_number }}</h2>
+              </div>
+            </div>
+            
+            <span class="inline-flex rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-widest border {% if unit.status == 'rented' %}bg-emerald-50 text-emerald-600 border-emerald-100{% elif unit.status == 'reserved' %}bg-amber-50 text-amber-600 border-amber-100{% else %}bg-slate-50 text-slate-600 border-slate-100{% endif %}">
+              {{ unit.get_status_display }}
+            </span>
           </div>
-          <span class="status-pill status-{{ unit.status }}">{{ unit.get_status_display }}</span>
-        </div>
-        <p class="unit-activity">{{ unit.activity|default:"نشاط غير محدد" }}</p>
-        <div class="unit-specs">
-          <span><i data-lucide="scan"></i> {{ unit.area }} م²</span>
-          <span><i data-lucide="store"></i> {{ unit.unit_type|default:"-" }}</span>
-          <span><i data-lucide="banknote"></i> {{ unit.annual_rent|floatformat:0 }} ريال</span>
-          <span><i data-lucide="ruler"></i> {{ unit.rent_per_meter|floatformat:0 }} / م²</span>
-        </div>
-        <div class="unit-tenant">
-          <div>
-            <span>المستأجر</span>
-            <strong>{{ unit.tenant_name|default:"متاحة للتأجير" }}</strong>
-            <small>{{ unit.phone|default:"لا يوجد رقم" }}</small>
+
+          <!-- Activity Badge -->
+          <div class="flex items-center gap-2 mb-8 p-3 rounded-xl bg-slate-50 border border-slate-100 group-hover:bg-emerald-50 group-hover:border-emerald-100 transition-all">
+            <i data-lucide="tag" class="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-500 transition-colors"></i>
+            <span class="text-xs font-bold text-slate-500 group-hover:text-emerald-700 transition-colors">{{ unit.activity|default:"نشاط غير محدد" }}</span>
           </div>
-          <a class="icon-btn" title="تعديل" href="{% url 'industrial_unit_edit' unit.id %}"><i data-lucide="square-pen"></i></a>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 gap-3 mb-8">
+            <div class="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 group-hover:bg-white group-hover:border-slate-200 transition-all">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="maximize-2" class="h-3 w-3"></i> المساحة
+              </div>
+              <span class="text-lg font-black text-slate-900">{{ unit.area }} <small class="text-[10px] font-bold">م²</small></span>
+            </div>
+            <div class="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 group-hover:bg-white group-hover:border-slate-200 transition-all">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="banknote" class="h-3 w-3"></i> الإيجار
+              </div>
+              <span class="text-lg font-black text-slate-900">{{ unit.annual_rent|floatformat:0 }} <small class="text-[10px] font-bold">ريال</small></span>
+            </div>
+          </div>
+
+          <!-- Footer Action -->
+          <div class="pt-6 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                <i data-lucide="user" class="h-5 w-5"></i>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">المستأجر الحالي</span>
+                <span class="text-sm font-black text-slate-900 truncate max-w-[120px]">{{ unit.tenant_name|default:"متاحة للتأجير" }}</span>
+              </div>
+            </div>
+            <a 
+              href="{% url 'industrial_unit_edit' unit.id %}" 
+              class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-amber-400 hover:bg-emerald-600 hover:text-white transition-all shadow-xl shadow-slate-200 group-hover:shadow-emerald-200"
+            >
+              <i data-lucide="edit-3" class="h-5 w-5"></i>
+            </a>
+          </div>
         </div>
       </article>
     {% empty %}
-      <div class="panel empty">لا توجد وحدات مطابقة للفلاتر الحالية.</div>
+      <div class="col-span-full py-24 text-center">
+        <div class="inline-flex h-24 w-24 items-center justify-center rounded-full bg-slate-50 text-slate-300 mb-6">
+          <i data-lucide="search-x" class="h-12 w-12"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-900">لا توجد وحدات تطابق البحث</h3>
+        <p class="text-slate-500 mt-2">جرب تغيير معايير الفلترة أو تصفير البحث</p>
+        <a href="{% url 'real_estate_units' %}" class="mt-8 inline-flex items-center gap-2 text-emerald-600 font-black hover:text-emerald-700 transition-colors">
+          <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+          إعادة تعيين كافة الفلاتر
+        </a>
+      </div>
     {% endfor %}
   </div>
 </div>
 {% endif %}
+
+<style>
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .grid article {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+</style>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
 {% endblock %}

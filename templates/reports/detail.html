@@ -1,1 +1,193 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">{{ report.title }}</h1><pre class="panel overflow-auto">{{ report.data }}</pre>{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ report.title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <!-- Header -->
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">
+          تقرير تفصيلي معتمد
+        </span>
+        <span class="rounded-full bg-slate-700/50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-300 border border-slate-600/30">
+          {{ report.get_report_type_display }}
+        </span>
+      </div>
+      <h1 class="mt-4 text-4xl font-black tracking-tight leading-none text-slate-50 drop-shadow-lg">{{ report.title }}</h1>
+      <p class="mt-4 text-slate-200 font-medium max-w-2xl text-lg opacity-90">
+        مشروع: {{ report.project.name }} | الفترة: من {{ report.period_start }} إلى {{ report.period_end }}
+      </p>
+    </div>
+    
+    <div class="relative z-10 flex gap-4">
+      <button onclick="window.print()" class="flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-sm font-black text-slate-900 hover:bg-slate-50 transition-all shadow-xl">
+        <i data-lucide="printer" class="h-4 w-4"></i>
+        طباعة التقرير
+      </button>
+    </div>
+  </header>
+
+  <!-- Summary Cards -->
+  <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">صافي الربح</span>
+      <h3 class="text-3xl font-black text-emerald-600 mt-1">{{ data.summary.net_profit|floatformat:0 }} <small class="text-sm">ريال</small></h3>
+      <p class="mt-2 text-[10px] font-bold text-slate-400">إجمالي الدخل - المصروفات</p>
+    </div>
+    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">نسبة الإشغال</span>
+      <h3 class="text-3xl font-black text-slate-950 mt-1">{{ data.summary.occupancy_rate }}%</h3>
+      <div class="mt-3 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-emerald-500" style="width: {{ data.summary.occupancy_rate }}%"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">نسبة التحصيل</span>
+      <h3 class="text-3xl font-black text-slate-950 mt-1">{{ data.summary.collection_rate }}%</h3>
+      <div class="mt-3 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-amber-500" style="width: {{ data.summary.collection_rate }}%"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
+      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">إجمالي الوحدات</span>
+      <h3 class="text-3xl font-black text-slate-950 mt-1">{{ data.summary.total_units }}</h3>
+      <p class="mt-2 text-[10px] font-bold text-slate-400">بمساحة إجمالية {{ data.summary.total_area|floatformat:0 }} م²</p>
+    </div>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-12">
+    <!-- Financial Section -->
+    <div class="lg:col-span-7 space-y-8">
+      <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-8 border-b border-slate-100">
+          <h2 class="text-xl font-black text-slate-950 flex items-center gap-3">
+            <i data-lucide="wallet" class="h-6 w-6 text-emerald-600"></i>
+            التحليل المالي التفصيلي
+          </h2>
+        </div>
+        <div class="p-8 grid gap-8 md:grid-cols-2">
+          <div>
+            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">الإيرادات والمصروفات</h3>
+            <div class="space-y-4">
+              <div class="flex justify-between items-center p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+                <span class="text-sm font-bold text-emerald-700">إجمالي الدخل</span>
+                <span class="text-lg font-black text-emerald-700">{{ data.summary.total_income|floatformat:0 }} ريال</span>
+              </div>
+              <div class="flex justify-between items-center p-4 rounded-2xl bg-rose-50 border border-rose-100">
+                <span class="text-sm font-bold text-rose-700">إجمالي المصروفات</span>
+                <span class="text-lg font-black text-rose-700">{{ data.summary.total_expense|floatformat:0 }} ريال</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">توزيع المصاريف</h3>
+            <div class="space-y-3">
+              {% for cat in data.finance.by_category %}
+                {% if cat.type == 'expense' %}
+                <div class="flex justify-between items-center text-sm font-bold">
+                  <span class="text-slate-600">{{ cat.name }}</span>
+                  <span class="text-slate-900">{{ cat.amount|floatformat:0 }} ريال</span>
+                </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-8 border-b border-slate-100">
+          <h2 class="text-xl font-black text-slate-950 flex items-center gap-3">
+            <i data-lucide="history" class="h-6 w-6 text-emerald-600"></i>
+            آخر المعاملات خلال الفترة
+          </h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-slate-50/50">
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">التاريخ</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الوصف</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">النوع</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">المبلغ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              {% for txn in data.finance.recent_transactions %}
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="p-6 text-xs font-bold text-slate-600">{{ txn.date }}</td>
+                <td class="p-6 text-xs font-black text-slate-900">{{ txn.desc }}</td>
+                <td class="p-6">
+                  <span class="px-2 py-1 rounded-lg text-[10px] font-black {% if txn.type == 'income' %}bg-emerald-50 text-emerald-600{% else %}bg-rose-50 text-rose-600{% endif %}">
+                    {{ txn.type }}
+                  </span>
+                </td>
+                <td class="p-6 text-sm font-black text-slate-950">{{ txn.amount|floatformat:0 }} ريال</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real Estate Section -->
+    <div class="lg:col-span-5 space-y-8">
+      <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+        <h2 class="text-xl font-black text-slate-950 flex items-center gap-3 mb-6">
+          <i data-lucide="building" class="h-6 w-6 text-emerald-600"></i>
+          أداء المباني
+        </h2>
+        <div class="space-y-6">
+          {% for b in data.real_estate.building_performance %}
+          <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
+            <div class="flex justify-between items-center mb-3">
+              <span class="font-black text-slate-900">{{ b.name }}</span>
+              <span class="text-xs font-black text-emerald-600">{{ b.occupancy }}% إشغال</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-[10px] font-bold text-slate-500 uppercase">
+              <div>
+                إيجار سنوي: <span class="text-slate-900">{{ b.annual_rent|floatformat:0 }} ريال</span>
+              </div>
+              <div>
+                المحصل: <span class="text-emerald-600">{{ b.paid|floatformat:0 }} ريال</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-slate-900 rounded-[2rem] p-8 text-white shadow-xl">
+        <h2 class="text-lg font-black flex items-center gap-3 mb-6">
+          <i data-lucide="trending-up" class="h-5 w-5 text-amber-400"></i>
+          نمو العملاء والطلبات
+        </h2>
+        <div class="flex items-center justify-between p-6 rounded-2xl bg-white/5 border border-white/10">
+          <div>
+            <span class="block text-xs font-bold text-slate-400 uppercase">استفسارات جديدة</span>
+            <span class="text-3xl font-black text-white mt-1">{{ data.growth.new_leads }}</span>
+          </div>
+          <div class="h-12 w-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400">
+            <i data-lucide="users" class="h-6 w-6"></i>
+          </div>
+        </div>
+        <p class="mt-6 text-xs font-medium text-slate-400 leading-relaxed">
+          هذا الرقم يمثل عدد العملاء المهتمين الذين تواصلوا خلال الفترة المحددة، مما يعكس مدى فاعلية النشاط التسويقي للمشروع.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @media print {
+    .topbar, .app-sidebar, .app-footer, button { display: none !important; }
+    .main-wrapper { padding: 0 !important; margin: 0 !important; }
+    body { background: white !important; }
+    .panel, header { border: 1px solid #eee !important; box-shadow: none !important; }
+  }
+</style>
+{% endblock %}

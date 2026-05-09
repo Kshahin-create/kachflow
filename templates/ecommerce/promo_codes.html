@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}أكواد الخصم والعروض | كاش فلو{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8 pb-12">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-rose-50 rounded-full -mr-20 -mt-20 opacity-50"></div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="px-3 py-1 bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider rounded-full">Discounts & Promo Codes</span>
+      </div>
+      <h1 class="text-3xl font-black text-slate-900 tracking-tight">أكواد الخصم والعروض</h1>
+      <p class="mt-2 text-slate-500 max-w-lg font-medium">إدارة قسائم التخفيض والعروض التلقائية المتزامنة من متجر Wuilt.</p>
+    </div>
+    <div class="relative z-10 flex gap-3">
+        <a href="?sync=1" class="inline-flex items-center gap-2 px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-sm font-black transition-all shadow-lg shadow-rose-100">
+            <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+            تزامن الآن
+        </a>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                <i data-lucide="ticket-percent" class="h-6 w-6"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي الأكواد</p>
+                <h3 class="text-2xl font-black text-slate-900">{{ promo_codes.count }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- Add more stats if needed -->
+  </div>
+
+  <!-- Promo Codes Table/Grid -->
+  <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right border-collapse">
+        <thead>
+          <tr class="bg-slate-50/50 text-slate-400 text-[11px] font-black uppercase tracking-widest border-b border-slate-100">
+            <th class="px-8 py-5">الكود / العنوان</th>
+            <th class="px-6 py-5">النوع</th>
+            <th class="px-6 py-5 text-center">القيمة</th>
+            <th class="px-6 py-5 text-center">الاستخدام</th>
+            <th class="px-6 py-5">الحالة</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-50">
+          {% for p in promo_codes %}
+          <tr class="hover:bg-slate-50/50 transition-colors group">
+            <td class="px-8 py-6">
+              <div class="flex items-center gap-4">
+                <div class="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-rose-50 group-hover:text-rose-600 transition-colors">
+                    <i data-lucide="tag" class="h-5 w-5"></i>
+                </div>
+                <div>
+                  <div class="text-base font-black text-slate-900">{{ p.code }}</div>
+                  <div class="text-xs text-slate-400 font-medium max-w-xs truncate">{{ p.description|default:"بدون وصف" }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-6">
+              <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                {{ p.promo_type }}
+              </span>
+            </td>
+            <td class="px-6 py-6 text-center">
+              {% if p.percentage_off > 0 %}
+                <div class="text-lg font-black text-emerald-600">{{ p.percentage_off }}%</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">خصم مئوي</div>
+              {% else %}
+                <div class="text-lg font-black text-blue-600">{{ p.fixed_amount }}</div>
+                <div class="text-[9px] font-black text-slate-400 uppercase">مبلغ ثابت</div>
+              {% endif %}
+            </td>
+            <td class="px-6 py-6 text-center">
+              <div class="text-sm font-black text-slate-700">{{ p.number_of_usage }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">
+                {% if p.usage_limit > 0 %}من أصل {{ p.usage_limit }}{% else %}استخدام مفتوح{% endif %}
+              </div>
+            </td>
+            <td class="px-6 py-6">
+              {% if p.status == 'ACTIVE' and not p.is_archived %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-black rounded-full border border-emerald-100">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span> نشط
+                </span>
+              {% elif p.is_archived %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 text-[11px] font-black rounded-full border border-slate-200">
+                  مؤرشف
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 text-[11px] font-black rounded-full border border-amber-100">
+                  {{ p.status }}
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-24 text-center">
+              <div class="flex flex-col items-center gap-6 max-w-sm mx-auto">
+                <div class="p-6 bg-slate-50 rounded-full border border-slate-100">
+                    <i data-lucide="ticket" class="h-12 w-12 text-slate-300"></i>
+                </div>
+                <div class="space-y-2">
+                    <h3 class="text-xl font-black text-slate-900 tracking-tight">لا توجد أكواد خصم</h3>
+                    <p class="text-sm text-slate-500 font-medium leading-relaxed">لم نجد أي أكواد خصم أو عروض في هذا المشروع. اضغط على "تزامن الآن" لجلبها من Wuilt.</p>
+                </div>
+                <a href="?sync=1" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black transition-all shadow-lg shadow-slate-200">
+                    <i data-lucide="refresh-cw" class="h-5 w-5"></i>
+                    بدء التزامن
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

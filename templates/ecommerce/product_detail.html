@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل المنتج: {{ product.name }}{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6 pb-10">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2 text-slate-500 mb-2">
+        <a href="{% url 'ecommerce_products' %}" class="hover:text-primary transition-colors flex items-center gap-1 text-sm font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          قائمة المنتجات
+        </a>
+      </div>
+      <h1 class="text-3xl font-black tracking-tight">{{ product.name }}</h1>
+      <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+        <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 uppercase">{{ product.product_type|default:"منتج" }}</span>
+        {% if product.category %}
+        <span class="flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+          {{ product.category }}
+        </span>
+        {% endif %}
+        {% for col in product.collections.all %}
+        <span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black border border-primary/20 uppercase">{{ col.title }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm
+        {% if product.status == 'ACTIVE' %}bg-emerald-100 text-emerald-700 border border-emerald-200
+        {% else %}bg-slate-100 text-slate-700 border border-slate-200{% endif %}">
+        {{ product.status }}
+      </span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left Column: Images & Variants -->
+    <div class="lg:col-span-8 space-y-8">
+      <!-- Image Gallery -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+        <h2 class="font-black text-xl mb-6 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          معرض الصور
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {% for img in product.images_json %}
+          <div class="aspect-square rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden group relative">
+            <img src="{{ img.src }}" alt="{{ img.altText }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          </div>
+          {% empty %}
+          <div class="col-span-full py-20 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400">
+            لا توجد صور متوفرة للمنتج
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Variants Table -->
+      {% if product.variants_json %}
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-8 py-6 border-b border-slate-100 bg-slate-50/30">
+          <h2 class="font-black text-xl flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            الأنواع والمتغيرات (Variants)
+          </h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table w-full border-collapse">
+            <thead>
+              <tr class="text-slate-400 text-xs uppercase tracking-widest bg-slate-50/50">
+                <th class="px-8 py-4 text-right">النوع</th>
+                <th class="px-8 py-4 text-center">SKU</th>
+                <th class="px-8 py-4 text-center">المخزون</th>
+                <th class="px-8 py-4 text-left">السعر</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              {% for v in product.variants_json %}
+              <tr class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-8 py-4">
+                  <div class="flex items-center gap-3">
+                    {% if v.image.src %}
+                    <img src="{{ v.image.src }}" class="w-10 h-10 rounded-lg object-cover">
+                    {% endif %}
+                    <span class="font-bold text-slate-700">{{ v.title }}</span>
+                  </div>
+                </td>
+                <td class="px-8 py-4 text-center">
+                  <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ v.sku|default:"-" }}</span>
+                </td>
+                <td class="px-8 py-4 text-center">
+                  <span class="px-2.5 py-1 rounded-lg {% if v.quantity > 0 %}bg-emerald-50 text-emerald-600{% else %}bg-rose-50 text-rose-600{% endif %} font-black text-xs">
+                    {{ v.quantity }}
+                  </span>
+                </td>
+                <td class="px-8 py-4 text-left">
+                  <div class="font-black text-slate-900">{{ v.price.amount }} <small>{{ v.price.currencyCode }}</small></div>
+                  {% if v.compareAtPrice.amount %}
+                  <div class="text-[10px] text-slate-400 line-through">{{ v.compareAtPrice.amount }}</div>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Description -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+        <h2 class="font-black text-xl mb-6 border-b border-slate-50 pb-4">وصف المنتج</h2>
+        <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+          {{ product.description|safe|default:"لا يوجد وصف متاح لهذا المنتج." }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Info Cards -->
+    <div class="lg:col-span-4 space-y-6">
+      <!-- Pricing Card -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-6">
+        <h2 class="font-black text-xl border-b border-slate-50 pb-4">التسعير</h2>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 font-medium">سعر البيع</span>
+            <div class="text-right">
+              <span class="text-3xl font-black text-primary">{{ product.selling_price }}</span>
+              <span class="text-xs font-bold text-primary block uppercase tracking-widest">{{ product.currency }}</span>
+            </div>
+          </div>
+          {% if product.compare_at_price > 0 %}
+          <div class="flex justify-between items-center text-slate-400">
+            <span class="text-sm font-medium">السعر السابق</span>
+            <span class="text-lg line-through font-bold">{{ product.compare_at_price }} {{ product.currency }}</span>
+          </div>
+          {% endif %}
+          <div class="pt-4 border-t border-slate-50 flex justify-between items-center">
+            <span class="text-sm text-slate-500">تكلفة المنتج</span>
+            <span class="font-bold text-slate-700">{{ product.cost_price }} {{ product.currency }}</span>
+          </div>
+          <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-black text-emerald-700 uppercase">هامش الربح</span>
+            <span class="font-black text-emerald-700 text-lg">+{{ product.profit_margin }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Card -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-6">
+        <h2 class="font-black text-xl border-b border-slate-50 pb-4">المخزون والمعرفات</h2>
+        <div class="space-y-4">
+          <div class="flex justify-between">
+            <span class="text-slate-500 text-sm">إجمالي المخزون</span>
+            <span class="font-black text-slate-900 text-lg">{{ product.stock_quantity }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 text-sm">SKU</span>
+            <span class="font-mono font-bold text-slate-700 text-sm">{{ product.sku|default:"-" }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500 text-sm">المعرف الخارجي</span>
+            <span class="font-mono text-[10px] text-slate-400">{{ product.external_id|truncatechars:15 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags Card -->
+      {% if product.tags %}
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 space-y-4">
+        <h2 class="font-black text-xl border-b border-slate-50 pb-4">الوسوم (Tags)</h2>
+        <div class="flex flex-wrap gap-2">
+          {% for tag in product.tags %}
+          <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold border border-slate-200">
+            {{ tag }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

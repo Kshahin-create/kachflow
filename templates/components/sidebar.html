@@ -1,75 +1,287 @@
+{% with active=request.resolver_match.url_name %}
 <div class="sidebar-inner flex h-full flex-col">
-  <div class="sidebar-head">
-    <div class="flex min-w-0 items-center gap-2">
-      <span class="brand-mark"><i data-lucide="blocks"></i></span>
-      <div class="sidebar-label min-w-0">
-        <div class="truncate text-xl font-black text-slate-950">KashFlow</div>
-        <div class="truncate text-xs text-slate-500">بيئات مشاريع مستقلة</div>
-      </div>
+  <div class="sidebar-head border-b border-white/10 px-5 py-5">
+    <div class="flex items-center justify-between gap-3">
+      <a href="{% url 'project_select' %}" class="flex min-w-0 items-center gap-3" :class="sidebarCollapsed ? 'justify-center' : ''">
+        <span class="brand-mark flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 shadow-lg shadow-cyan-950/30">
+          <i data-lucide="layers" class="h-6 w-6 text-white"></i>
+        </span>
+        <span class="sidebar-label min-w-0" x-show="!sidebarCollapsed">
+          <strong class="block text-xl font-black leading-none text-white">كاش فلو</strong>
+          <span class="mt-1 block text-[10px] font-black uppercase tracking-widest text-cyan-200/80">Project OS</span>
+        </span>
+      </a>
+      <button
+        type="button"
+        aria-label="طي القائمة"
+        @click="sidebarCollapsed = !sidebarCollapsed"
+        class="sidebar-toggle hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-cyan-100 transition hover:bg-white/10 lg:flex"
+      >
+        <i :data-lucide="sidebarCollapsed ? 'panel-left' : 'panel-right'" class="h-5 w-5"></i>
+      </button>
     </div>
-    <button class="sidebar-toggle hidden lg:inline-flex" type="button" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'فتح القائمة' : 'طي القائمة'">
-      <i data-lucide="panel-right"></i>
-    </button>
   </div>
 
-  {% if current_project %}
-    <div class="sidebar-project">
-      <div class="flex items-center gap-2 text-[11px] font-bold text-emerald-700">
-        <i data-lucide="folder-kanban" class="h-3.5 w-3.5"></i>
-        <span class="sidebar-label">المشروع الحالي</span>
-      </div>
-      <div class="sidebar-label mt-1 truncate text-sm font-black text-emerald-950">{{ current_project.name }}</div>
-      <a class="sidebar-label mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-800" href="{% url 'project_select' %}">
-        <i data-lucide="repeat-2" class="h-3.5 w-3.5"></i>
-        تغيير المشروع
-      </a>
-    </div>
-  {% endif %}
-
-  <nav class="flex-1 space-y-5 overflow-y-auto px-3 py-4 text-sm">
-    <div>
-      <div class="nav-group-title">عام</div>
-      <a class="nav-link" href="{% url 'project_select' %}" title="اختيار المشروع"><i data-lucide="layout-list"></i><span>اختيار المشروع</span></a>
-      <a class="nav-link" href="{% url 'import_upload' %}" title="استيراد Excel"><i data-lucide="file-spreadsheet"></i><span>استيراد Excel</span></a>
-      <a class="nav-link" href="{% url 'reports' %}" title="التقارير"><i data-lucide="file-bar-chart"></i><span>التقارير</span></a>
-    </div>
-
+  <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-5">
     {% if current_project %}
-      <div>
-        <div class="nav-group-title">بيئة المشروع</div>
-        {% if current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
-          <a class="nav-link" href="{% url 'real_estate_dashboard' %}" title="داشبورد التشغيل"><i data-lucide="layout-dashboard"></i><span>داشبورد التشغيل</span></a>
-          <a class="nav-link" href="{% url 'real_estate_properties' %}" title="المباني"><i data-lucide="building-2"></i><span>المباني</span></a>
-          <a class="nav-link" href="{% url 'real_estate_units' %}" title="الوحدات"><i data-lucide="warehouse"></i><span>الوحدات</span></a>
-          <a class="nav-link" href="{% url 'real_estate_tenants' %}" title="المستأجرون"><i data-lucide="users-round"></i><span>المستأجرون</span></a>
-          <a class="nav-link" href="{% url 'real_estate_leases' %}" title="العقود"><i data-lucide="file-signature"></i><span>العقود</span></a>
-          <a class="nav-link" href="{% url 'real_estate_collections' %}" title="التحصيلات"><i data-lucide="receipt"></i><span>التحصيلات</span></a>
-          <a class="nav-link" href="{% url 'real_estate_installments' %}" title="الأقساط"><i data-lucide="calendar-clock"></i><span>الأقساط</span></a>
-          <a class="nav-link" href="{% url 'nakhba_api_settings' %}" title="ربط نخبة API"><i data-lucide="plug-zap"></i><span>ربط نخبة API</span></a>
-        {% elif current_project.project_type == "ecommerce" %}
-          <a class="nav-link" href="{% url 'ecommerce_dashboard' %}" title="داشبورد المتجر"><i data-lucide="layout-dashboard"></i><span>داشبورد المتجر</span></a>
-          <a class="nav-link" href="{% url 'ecommerce_orders' %}" title="الطلبات"><i data-lucide="shopping-bag"></i><span>الطلبات</span></a>
-          <a class="nav-link" href="{% url 'ecommerce_products' %}" title="المنتجات"><i data-lucide="package"></i><span>المنتجات</span></a>
-          <a class="nav-link" href="{% url 'ecommerce_customers' %}" title="العملاء"><i data-lucide="users-round"></i><span>العملاء</span></a>
-        {% elif current_project.project_type == "ads" %}
-          <a class="nav-link" href="{% url 'ads_dashboard' %}" title="داشبورد الإعلانات"><i data-lucide="layout-dashboard"></i><span>داشبورد الإعلانات</span></a>
-          <a class="nav-link" href="{% url 'ads_campaigns' %}" title="الحملات"><i data-lucide="megaphone"></i><span>الحملات</span></a>
-          <a class="nav-link" href="{% url 'ads_performance' %}" title="الأداء"><i data-lucide="trending-up"></i><span>الأداء</span></a>
-        {% elif current_project.project_type == "investment" %}
-          <a class="nav-link" href="{% url 'investments_dashboard' %}" title="داشبورد الاستثمار"><i data-lucide="layout-dashboard"></i><span>داشبورد الاستثمار</span></a>
-          <a class="nav-link" href="{% url 'investments_assets' %}" title="الأصول"><i data-lucide="landmark"></i><span>الأصول</span></a>
-        {% else %}
-          <a class="nav-link" href="{% url 'project_dashboard' current_project.id %}" title="داشبورد المشروع"><i data-lucide="layout-dashboard"></i><span>داشبورد المشروع</span></a>
-        {% endif %}
+      <div class="project-context mb-6 overflow-hidden rounded-xl border border-white/10 bg-white/[0.07] p-4 shadow-lg shadow-slate-950/10">
+        <div class="flex items-center gap-3" :class="sidebarCollapsed ? 'justify-center' : ''">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-slate-950/30 text-cyan-200">
+            {% if current_project.project_type == "ecommerce" %}
+              <i data-lucide="store" class="h-5 w-5"></i>
+            {% elif current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
+              <i data-lucide="building-2" class="h-5 w-5"></i>
+            {% elif current_project.project_type == "ads" %}
+              <i data-lucide="megaphone" class="h-5 w-5"></i>
+            {% elif current_project.project_type == "investment" %}
+              <i data-lucide="line-chart" class="h-5 w-5"></i>
+            {% elif current_project.project_type == "finance" %}
+              <i data-lucide="wallet" class="h-5 w-5"></i>
+            {% else %}
+              <i data-lucide="folder-kanban" class="h-5 w-5"></i>
+            {% endif %}
+          </span>
+          <div class="sidebar-label min-w-0" x-show="!sidebarCollapsed">
+            <p class="text-[10px] font-black uppercase tracking-widest text-cyan-200/70">المشروع الحالي</p>
+            <h2 class="mt-1 truncate text-sm font-black text-slate-50">{{ current_project.name }}</h2>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <span class="rounded-lg border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-[10px] font-black text-cyan-100">{{ current_project.get_project_type_display }}</span>
+              <span class="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black text-white/75">{{ current_project.base_currency }}</span>
+            </div>
+          </div>
+        </div>
+        <a href="{% url 'project_select' %}" class="sidebar-label mt-4 flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-xs font-black text-white transition hover:bg-white/10" x-show="!sidebarCollapsed">
+          <i data-lucide="replace" class="h-4 w-4 text-cyan-200"></i>
+          تبديل المشروع
+        </a>
       </div>
+    {% else %}
+      <a href="{% url 'project_select' %}" class="mb-6 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.07] p-4 text-white transition hover:bg-white/10" :class="sidebarCollapsed ? 'justify-center' : ''">
+        <i data-lucide="layout-dashboard" class="h-5 w-5 text-cyan-200"></i>
+        <span class="sidebar-label text-sm font-black" x-show="!sidebarCollapsed">اختيار مشروع</span>
+      </a>
     {% endif %}
 
-    <div>
-      <div class="nav-group-title">الماليات والإدارة</div>
-      <a class="nav-link" href="{% url 'finance_accounts' %}" title="الحسابات"><i data-lucide="wallet-cards"></i><span>الحسابات</span></a>
-      <a class="nav-link" href="{% url 'finance_transactions' %}" title="المعاملات"><i data-lucide="arrow-left-right"></i><span>المعاملات</span></a>
-      <a class="nav-link" href="{% url 'finance_cashflow' %}" title="التدفق النقدي"><i data-lucide="activity"></i><span>التدفق النقدي</span></a>
-      <a class="nav-link" href="{% url 'audit_log' %}" title="سجل النشاط"><i data-lucide="shield-check"></i><span>سجل النشاط</span></a>
+    <nav class="space-y-5" aria-label="القائمة الرئيسية">
+      <section>
+        <h3 class="sidebar-label mb-2 px-2 text-[10px] font-black uppercase tracking-widest text-white/45" x-show="!sidebarCollapsed">مساحة العمل</h3>
+        <div class="space-y-1">
+          <a href="{% url 'project_select' %}" class="sidebar-link {% if active == 'project_select' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+            <i data-lucide="grid-2x2" class="sidebar-icon"></i>
+            <span class="sidebar-label" x-show="!sidebarCollapsed">كل المشاريع</span>
+          </a>
+          {% if current_project %}
+            <a href="{% url 'project_detail' current_project.pk %}" class="sidebar-link {% if active == 'project_detail' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+              <i data-lucide="panel-top" class="sidebar-icon"></i>
+              <span class="sidebar-label" x-show="!sidebarCollapsed">ملخص المشروع</span>
+            </a>
+          {% endif %}
+        </div>
+      </section>
+
+      {% if current_project %}
+        <section>
+          <h3 class="sidebar-label mb-2 px-2 text-[10px] font-black uppercase tracking-widest text-white/45" x-show="!sidebarCollapsed">
+            {% if current_project.project_type == "ecommerce" %}
+              المتجر والعمليات
+            {% elif current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
+              العقارات والتأجير
+            {% elif current_project.project_type == "ads" %}
+              الإعلانات والنمو
+            {% elif current_project.project_type == "investment" %}
+              الاستثمار والأصول
+            {% elif current_project.project_type == "finance" %}
+              المالية
+            {% else %}
+              أدوات المشروع
+            {% endif %}
+          </h3>
+          <div class="space-y-1">
+            {% if current_project.project_type == "ecommerce" %}
+              <a href="{% url 'ecommerce_dashboard' %}" class="sidebar-link {% if active == 'ecommerce_dashboard' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="store" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">لوحة المتجر</span>
+              </a>
+              <a href="{% url 'ecommerce_orders' %}" class="sidebar-link {% if active == 'ecommerce_orders' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="shopping-cart" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الطلبات</span>
+              </a>
+              <a href="{% url 'ecommerce_products' %}" class="sidebar-link {% if active == 'ecommerce_products' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="package" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">المنتجات</span>
+              </a>
+              <a href="{% url 'ecommerce_collections' %}" class="sidebar-link {% if active == 'ecommerce_collections' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="layers" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">المجموعات</span>
+              </a>
+              <a href="{% url 'ecommerce_promo_codes' %}" class="sidebar-link {% if active == 'ecommerce_promo_codes' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="ticket-percent" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">أكواد الخصم</span>
+              </a>
+              <a href="{% url 'ecommerce_customers' %}" class="sidebar-link {% if active == 'ecommerce_customers' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="users" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">العملاء</span>
+              </a>
+            {% elif current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
+              <a href="{% url 'real_estate_dashboard' %}" class="sidebar-link {% if active == 'real_estate_dashboard' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="pie-chart" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">لوحة العقارات</span>
+              </a>
+              <a href="{% url 'real_estate_analytics' %}" class="sidebar-link {% if active == 'real_estate_analytics' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="bar-chart-3" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">إحصائيات تفصيلية</span>
+              </a>
+              <a href="{% url 'real_estate_properties' %}" class="sidebar-link {% if active == 'real_estate_properties' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="building" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">العقارات</span>
+              </a>
+              <a href="{% url 'real_estate_units' %}" class="sidebar-link {% if active == 'real_estate_units' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="door-open" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الوحدات</span>
+              </a>
+              <a href="{% url 'real_estate_tenants' %}" class="sidebar-link {% if active == 'real_estate_tenants' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="user-round-check" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">المستأجرون</span>
+              </a>
+              <a href="{% url 'real_estate_leases' %}" class="sidebar-link {% if active == 'real_estate_leases' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="file-signature" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">العقود</span>
+              </a>
+              <a href="{% url 'real_estate_bookings' %}" class="sidebar-link {% if active == 'real_estate_bookings' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="calendar-check" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الحجوزات</span>
+              </a>
+              <a href="{% url 'real_estate_customers' %}" class="sidebar-link {% if active == 'real_estate_customers' or active == 'real_estate_customer_detail' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="users" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">العملاء (API)</span>
+              </a>
+              <a href="{% url 'real_estate_tenant_accounts' %}" class="sidebar-link {% if active == 'real_estate_tenant_accounts' or active == 'real_estate_tenant_account_detail' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="id-card" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">حسابات المستأجرين</span>
+              </a>
+              <a href="{% url 'real_estate_invoices' %}" class="sidebar-link {% if active == 'real_estate_invoices' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="receipt-text" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الفواتير</span>
+              </a>
+              <a href="{% url 'real_estate_audit_log' %}" class="sidebar-link {% if active == 'real_estate_audit_log' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="shield" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">سجل التدقيق</span>
+              </a>
+              <a href="{% url 'real_estate_users' %}" class="sidebar-link {% if active == 'real_estate_users' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="user-cog" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">مستخدمو النظام</span>
+              </a>
+            {% elif current_project.project_type == "ads" %}
+              <a href="{% url 'ads_dashboard' %}" class="sidebar-link {% if active == 'ads_dashboard' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="gauge" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">لوحة الإعلانات</span>
+              </a>
+              <a href="{% url 'ads_campaigns' %}" class="sidebar-link {% if active == 'ads_campaigns' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="megaphone" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الحملات</span>
+              </a>
+              <a href="{% url 'ads_performance' %}" class="sidebar-link {% if active == 'ads_performance' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="trending-up" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الأداء</span>
+              </a>
+            {% elif current_project.project_type == "investment" %}
+              <a href="{% url 'investments_dashboard' %}" class="sidebar-link {% if active == 'investments_dashboard' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="line-chart" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">لوحة الاستثمار</span>
+              </a>
+              <a href="{% url 'investments_assets' %}" class="sidebar-link {% if active == 'investments_assets' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="landmark" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الأصول</span>
+              </a>
+            {% elif current_project.project_type == "finance" %}
+              <a href="{% url 'finance_cashflow' %}" class="sidebar-link {% if active == 'finance_cashflow' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="activity" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">التدفق النقدي</span>
+              </a>
+              <a href="{% url 'finance_accounts' %}" class="sidebar-link {% if active == 'finance_accounts' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="wallet" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">الحسابات</span>
+              </a>
+              <a href="{% url 'finance_transactions' %}" class="sidebar-link {% if active == 'finance_transactions' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="arrow-up-down" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">القيود</span>
+              </a>
+              <a href="{% url 'finance_categories' %}" class="sidebar-link {% if active == 'finance_categories' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="tags" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">التصنيفات</span>
+              </a>
+            {% else %}
+              <a href="{% url 'project_dashboard' current_project.pk %}" class="sidebar-link {% if active == 'project_dashboard' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">لوحة المشروع</span>
+              </a>
+            {% endif %}
+          </div>
+        </section>
+
+        <section>
+          <h3 class="sidebar-label mb-2 px-2 text-[10px] font-black uppercase tracking-widest text-white/45" x-show="!sidebarCollapsed">الماليات والبيانات</h3>
+          <div class="space-y-1">
+            {% if current_project.project_type != "finance" %}
+              <a href="{% url 'finance_accounts' %}" class="sidebar-link {% if active == 'finance_accounts' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="wallet" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">حسابات المشروع</span>
+              </a>
+              <a href="{% url 'finance_transactions' %}" class="sidebar-link {% if active == 'finance_transactions' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="receipt-text" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">القيود المالية</span>
+              </a>
+            {% endif %}
+            <a href="{% url 'import_upload' %}" class="sidebar-link {% if active == 'import_upload' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+              <i data-lucide="file-up" class="sidebar-icon"></i>
+              <span class="sidebar-label" x-show="!sidebarCollapsed">استيراد بيانات</span>
+            </a>
+            <a href="{% url 'reports' %}" class="sidebar-link {% if active == 'reports' or active == 'report_create' or active == 'report_detail' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+              <i data-lucide="bar-chart-3" class="sidebar-icon"></i>
+              <span class="sidebar-label" x-show="!sidebarCollapsed">تقارير المشروع</span>
+            </a>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="sidebar-label mb-2 px-2 text-[10px] font-black uppercase tracking-widest text-white/45" x-show="!sidebarCollapsed">إعدادات المشروع</h3>
+          <div class="space-y-1">
+            <a href="{% url 'project_members' current_project.pk %}" class="sidebar-link {% if active == 'project_members' or active == 'member_permissions' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+              <i data-lucide="users-round" class="sidebar-icon"></i>
+              <span class="sidebar-label" x-show="!sidebarCollapsed">الفريق والصلاحيات</span>
+            </a>
+            {% if current_project.project_type == "ecommerce" %}
+              <a href="{% url 'ecommerce_wuilt_api_settings' %}" class="sidebar-link {% if active == 'ecommerce_wuilt_api_settings' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="plug" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">تكامل Wuilt API</span>
+              </a>
+            {% endif %}
+            {% if current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
+              <a href="{% url 'real_estate_nakhba_api_docs' %}" class="sidebar-link {% if active == 'real_estate_nakhba_api_docs' or active == 'nakhba_api_settings' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="plug" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">تكامل API العقارات</span>
+              </a>
+            {% endif %}
+            <a href="{% url 'audit_log' %}" class="sidebar-link {% if active == 'audit_log' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+              <i data-lucide="history" class="sidebar-icon"></i>
+              <span class="sidebar-label" x-show="!sidebarCollapsed">سجل النشاط</span>
+            </a>
+          </div>
+        </section>
+      {% endif %}
+    </nav>
+  </div>
+
+  <div class="sidebar-footer border-t border-white/10 p-4">
+    <div class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] p-3" :class="sidebarCollapsed ? 'justify-center' : ''">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-black text-slate-950">
+        {{ request.user.username|first|upper }}
+      </span>
+      <div class="sidebar-label min-w-0" x-show="!sidebarCollapsed">
+        <p class="truncate text-sm font-black text-white">{{ request.user.username }}</p>
+        <p class="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-white/40">System Admin</p>
+      </div>
     </div>
-  </nav>
+  </div>
 </div>
+{% endwith %}

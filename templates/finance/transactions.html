@@ -1,5 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-5 text-2xl font-bold">المعاملات</h1>
-<div class="panel overflow-x-auto"><table class="table"><tr><th>التاريخ</th><th>المشروع</th><th>الحساب</th><th>النوع</th><th>المبلغ</th></tr>{% for txn in transactions %}<tr><td>{{ txn.date }}</td><td>{{ txn.project.name }}</td><td>{{ txn.account.name }}</td><td>{{ txn.transaction_type }}</td><td>{{ txn.amount }}</td></tr>{% endfor %}</table></div>
+<div class="flex items-center justify-between mb-5">
+    <h1 class="text-2xl font-bold">المعاملات</h1>
+    <a href="{% url 'finance_transaction_create' %}" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-all">
+        <i data-lucide="plus" class="h-4 w-4"></i>
+        إضافة معاملة
+    </a>
+</div>
+
+<div class="panel overflow-x-auto">
+    <table class="table w-full">
+        <thead>
+            <tr class="border-b border-slate-100 bg-slate-50/50">
+                <th class="px-4 py-3 text-right">التاريخ</th>
+                <th class="px-4 py-3 text-right">المشروع</th>
+                <th class="px-4 py-3 text-right">الحساب</th>
+                <th class="px-4 py-3 text-right">النوع</th>
+                <th class="px-4 py-3 text-right">المبلغ</th>
+                <th class="px-4 py-3 text-right">الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for txn in transactions %}
+            <tr class="border-b border-slate-50 hover:bg-slate-50/30 transition-colors">
+                <td class="px-4 py-3">{{ txn.date }}</td>
+                <td class="px-4 py-3">{{ txn.project.name }}</td>
+                <td class="px-4 py-3">{{ txn.account.name }}</td>
+                <td class="px-4 py-3">
+                    {% if txn.transaction_type == 'income' %}
+                        <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">دخل</span>
+                    {% else %}
+                        <span class="inline-flex items-center rounded-md bg-rose-50 px-2 py-1 text-xs font-bold text-rose-700 ring-1 ring-inset ring-rose-600/20">مصروف</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 font-bold">{{ txn.amount }}</td>
+                <td class="px-4 py-3">
+                    <a href="{% url 'finance_transaction_edit' txn.id %}" class="text-slate-400 hover:text-emerald-600 transition-colors" title="تعديل">
+                        <i data-lucide="edit-3" class="h-4 w-4"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

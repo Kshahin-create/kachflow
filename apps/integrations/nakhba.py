@@ -1,11 +1,13 @@
 from decimal import Decimal, InvalidOperation
 import json
+import hashlib
 from datetime import date
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from django.db import transaction
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.integrations.models import RawApiEvent, SyncLog
@@ -26,34 +28,123 @@ class NakhbaApiClient:
         self.api_key = api_key
         self.timeout = timeout
 
-    def request(self, path, params=None):
-        if not self.api_key:
-            raise NakhbaApiError("مفتاح API غير مسجل.")
-        url = f"{self.base_url}/{path.lstrip('/')}"
-        if params:
-            url = f"{url}?{urlencode(params)}"
-        request = Request(url, headers={"X-API-Key": self.api_key, "Accept": "application/json"})
-        try:
-            with urlopen(request, timeout=self.timeout) as response:
-                body = response.read().decode("utf-8")
-                return json.loads(body) if body else {}
-        except HTTPError as exc:
-            detail = exc.read().decode("utf-8", errors="ignore")
-            raise NakhbaApiError(f"API error {exc.code}: {detail or exc.reason}") from exc
-        except (URLError, TimeoutError) as exc:
-            raise NakhbaApiError(f"فشل الاتصال بالـ API: {exc}") from exc
-
     def stats(self):
         return self.request("stats")
 
     def buildings(self):
         return self.request("buildings")
 
-    def units(self):
-        return self.request("units")
+    def building_detail(self, number):
+        return self.request(f"buildings/{number}")
 
-    def tenants(self):
-        return self.request("tenants")
+    def units(self, params=None):
+        return self.request("units", params=params)
+
+    def unit_detail(self, unit_id):
+        return self.request(f"units/{unit_id}")
+
+    def create_unit(self, data):
+        return self.request("units", method="POST", data=data)
+
+    def update_unit(self, unit_id, data):
+        return self.request(f"units/{unit_id}", method="PATCH", data=data)
+
+    def delete_unit(self, unit_id):
+        return self.request(f"units/{unit_id}", method="DELETE")
+
+    def create_booking(self, data):
+        return self.request("bookings", method="POST", data=data)
+
+    def tenants(self, params=None):
+        return self.request("tenants", params=params)
+
+    def create_tenant(self, data):
+        return self.request("tenants", method="POST", data=data)
+
+    def update_tenant(self, tenant_id, data):
+        return self.request(f"tenants/{tenant_id}", method="PATCH", data=data)
+
+    def delete_tenant(self, tenant_id):
+        return self.request(f"tenants/{tenant_id}", method="DELETE")
+
+    def bookings(self, params=None):
+        return self.request("bookings", params=params)
+
+    def booking_detail(self, booking_id):
+        return self.request(f"bookings/{booking_id}")
+
+    def update_booking(self, booking_id, data):
+        return self.request(f"bookings/{booking_id}", method="PATCH", data=data)
+
+    def customers(self, params=None):
+        return self.request("customers", params=params)
+
+    def customer_detail(self, user_id):
+        return self.request(f"customers/{user_id}")
+
+    def users(self):
+        return self.request("users")
+
+    def audit_log(self, params=None):
+        return self.request("audit-log", params=params)
+
+    def tenant_accounts(self, params=None):
+        return self.request("tenant-accounts", params=params)
+
+    def tenant_account_detail(self, tenant_account_id):
+        return self.request(f"tenant-accounts/{tenant_account_id}")
+
+    def tenant_account_add_units(self, tenant_account_id, unit_ids):
+        return self.request(f"tenant-accounts/{tenant_account_id}/units", method="POST", data={"unit_ids": unit_ids})
+
+    def tenant_account_remove_unit(self, tenant_account_id, unit_id):
+        return self.request(f"tenant-accounts/{tenant_account_id}/units/{unit_id}", method="DELETE")
+
+    def invoices(self, params=None):
+        return self.request("invoices", params=params)
+
+    def request(self, path, params=None, method="GET", data=None):
+        if not self.api_key:
+            raise NakhbaApiError("مفتاح API غير مسجل.")
+        url = f"{self.base_url}/{path.lstrip('/')}"
+        if params:
+            url = f"{url}?{urlencode(params)}"
+        
+        headers = {
+            "X-API-Key": self.api_key, 
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        
+        cache_key = None
+        if method == "GET":
+            key_material = json.dumps(
+                {"base_url": self.base_url, "path": path, "params": params or {}, "api": hashlib.sha256(self.api_key.encode("utf-8")).hexdigest()[:16]},
+                sort_keys=True,
+                ensure_ascii=False,
+            ).encode("utf-8")
+            cache_key = f"nakhba:get:{hashlib.sha256(key_material).hexdigest()}"
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
+
+        body_data = None
+        if data:
+            body_data = json.dumps(data).encode("utf-8")
+
+        request = Request(url, headers=headers, method=method, data=body_data)
+        try:
+            with urlopen(request, timeout=self.timeout) as response:
+                body = response.read().decode("utf-8")
+                payload = json.loads(body) if body else {}
+                if cache_key:
+                    cache.set(cache_key, payload, 30)
+                return payload
+        except HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="ignore")
+            raise NakhbaApiError(f"API error {exc.code}: {detail or exc.reason}") from exc
+        except (URLError, TimeoutError) as exc:
+            raise NakhbaApiError(f"فشل الاتصال بالـ API: {exc}") from exc
 
 
 def masked_key(api_key):

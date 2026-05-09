@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}توثيق REST API | نخبة تسكين{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <!-- API Header -->
+  <header class="dashboard-hero bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-3">
+          <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg flex items-center justify-center">
+            <i data-lucide="plug-zap" class="text-white h-7 w-7"></i>
+          </div>
+          <span class="text-2xl font-black tracking-tight">نخبة تسكين العقارية</span>
+        </div>
+        <h1 class="mt-8 text-4xl lg:text-5xl font-black tracking-tight leading-none">توثيق REST API</h1>
+        <p class="mt-6 text-slate-400 font-medium text-lg leading-relaxed">
+          استهلك بيانات نخبة تسكين من تطبيق الموبايل أو أي نظام خارجي عبر واجهة REST احترافية. نوفر لك أمثلة جاهزة بـ 5 لغات برمجية لتسريع عملية الربط.
+        </p>
+      </div>
+
+      <div class="shrink-0 flex flex-col gap-4">
+        <a href="#" class="flex items-center justify-center gap-3 rounded-2xl bg-white/5 border border-white/10 px-8 py-5 text-sm font-black text-white hover:bg-white/10 transition-all backdrop-blur-md">
+          <i data-lucide="download-cloud" class="h-5 w-5 text-amber-400"></i>
+          تحميل Postman Collection
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid gap-8 lg:grid-cols-12">
+    <!-- Navigation / Sidebar for Docs -->
+    <aside class="lg:col-span-3 space-y-6">
+      <div class="panel p-6 sticky top-24">
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">فهرس التوثيق</h3>
+        <nav class="space-y-1">
+          <a href="#base-url" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <i data-lucide="link-2" class="h-4 w-4"></i> العنوان الأساسي
+          </a>
+          <a href="#authentication" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <i data-lucide="shield-lock" class="h-4 w-4"></i> المصادقة
+          </a>
+          <a href="#endpoints" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 bg-slate-100 transition-all">
+            <i data-lucide="list-tree" class="h-4 w-4"></i> المسارات (Endpoints)
+          </a>
+          <div class="pr-8 pt-2 space-y-1 border-r-2 border-slate-100 mr-4">
+            <a href="#get-buildings" class="block py-2 text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors">قائمة المباني</a>
+            <a href="#get-units" class="block py-2 text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors">قائمة الوحدات</a>
+            <a href="#post-bookings" class="block py-2 text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors">إنشاء حجز</a>
+            <a href="#manage-tenants" class="block py-2 text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors">إدارة المستأجرين</a>
+          </div>
+          <a href="#errors" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+            <i data-lucide="alert-circle" class="h-4 w-4"></i> كودات الأخطاء
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main Docs Content -->
+    <div class="lg:col-span-9 space-y-12">
+      <!-- Base URL Section -->
+      <section id="base-url" class="panel p-8 lg:p-10">
+        <h2 class="text-2xl font-black text-slate-950 flex items-center gap-4">
+          <i data-lucide="link" class="h-7 w-7 text-emerald-600"></i>
+          العنوان الأساسي (Base URL)
+        </h2>
+        <div class="mt-8 rounded-2xl bg-slate-900 p-6 flex items-center justify-between group shadow-xl">
+          <code class="text-emerald-400 font-mono text-lg break-all ltr">{{ base_url }}</code>
+          <button class="shrink-0 h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+            <i data-lucide="copy" class="h-5 w-5"></i>
+          </button>
+        </div>
+        <div class="mt-8 grid gap-6 md:grid-cols-3">
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] font-black text-slate-400 uppercase">صيغة البيانات</span>
+            <strong class="text-sm font-black text-slate-900">JSON (UTF-8)</strong>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] font-black text-slate-400 uppercase">العملة النشطة</span>
+            <strong class="text-sm font-black text-slate-900">SAR (ريال سعودي)</strong>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="text-[10px] font-black text-slate-400 uppercase">CORS Policy</span>
+            <strong class="text-sm font-black text-emerald-600">مفتوح (Allowed)</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Authentication Section -->
+      <section id="authentication" class="panel p-8 lg:p-10">
+        <h2 class="text-2xl font-black text-slate-950 flex items-center gap-4">
+          <i data-lucide="shield-check" class="h-7 w-7 text-emerald-600"></i>
+          المصادقة (Authentication)
+        </h2>
+        <p class="mt-6 text-slate-600 font-medium leading-relaxed">
+          كل طلب يتم إرساله للواجهة يجب أن يحتوي على إحدى الترويستين (Headers) التاليتين للتحقق من الصلاحية:
+        </p>
+        
+        <div class="mt-8 space-y-6">
+          <div class="rounded-3xl border border-slate-100 bg-slate-50/50 p-6">
+            <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+              <span class="h-5 w-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px]">1</span>
+              مفتاح API (API Key)
+            </h4>
+            <p class="mt-2 text-xs font-bold text-slate-500">الموصى به للتطبيقات والأنظمة الخارجية.</p>
+            <div class="mt-4 rounded-xl bg-slate-900 p-4">
+              <code class="text-amber-400 font-mono text-sm ltr">X-API-Key: nkb_live_xxxxxxxxxxxxxxxxxx</code>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-slate-100 bg-slate-50/50 p-6">
+            <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+              <span class="h-5 w-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px]">2</span>
+              JWT Token
+            </h4>
+            <p class="mt-2 text-xs font-bold text-slate-500">لمستخدمي الموقع المسجلين (داخلي).</p>
+            <div class="mt-4 rounded-xl bg-slate-900 p-4">
+              <code class="text-amber-400 font-mono text-sm ltr">Authorization: Bearer &lt;supabase_jwt&gt;</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Endpoints Section -->
+      <section id="endpoints" class="space-y-8">
+        <h2 class="text-3xl font-black text-slate-950 px-4">المسارات المتاحة (Endpoints)</h2>
+
+        <!-- Endpoint: GET Buildings -->
+        <div id="get-buildings" class="panel overflow-hidden">
+          <div class="bg-slate-50 p-6 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white">GET</span>
+              <code class="text-sm font-black text-slate-900 ltr">/buildings</code>
+            </div>
+            <span class="rounded-full bg-slate-200 px-3 py-1 text-[10px] font-black text-slate-600 uppercase">Scope: read</span>
+          </div>
+          <div class="p-8">
+            <h3 class="text-lg font-black text-slate-900">قائمة المباني</h3>
+            <p class="mt-3 text-sm font-medium text-slate-600">يرجع قائمة بكافة المباني مع إحصائيات الإشغال والوحدات والإيراد المتوقع لكل مبنى.</p>
+            
+            <div class="mt-8 space-y-4">
+              <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest">مثال الاستجابة (JSON)</h4>
+              <div class="rounded-2xl bg-slate-900 p-6 overflow-x-auto">
+                <pre class="text-emerald-400 font-mono text-xs ltr">
+{
+  "data": [
+    {
+      "number": 1,
+      "type": "محلات قطع غيار السيارات",
+      "total_units": 24,
+      "rented_units": 12,
+      "available_units": 9,
+      "expected_annual_revenue": 1440000
+    }
+  ],
+  "count": 13
+}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Endpoint: GET Units -->
+        <div id="get-units" class="panel overflow-hidden">
+          <div class="bg-slate-50 p-6 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white">GET</span>
+              <code class="text-sm font-black text-slate-900 ltr">/units</code>
+            </div>
+            <span class="rounded-full bg-slate-200 px-3 py-1 text-[10px] font-black text-slate-600 uppercase">Scope: read</span>
+          </div>
+          <div class="p-8">
+            <h3 class="text-lg font-black text-slate-900">قائمة الوحدات</h3>
+            <p class="mt-3 text-sm font-medium text-slate-600">عرض كافة الوحدات مع إمكانية التصفية (Filtering) المتقدمة.</p>
+            
+            <div class="mt-6 table-container border-none shadow-none">
+              <table class="w-full text-right">
+                <thead>
+                  <tr class="bg-slate-50">
+                    <th class="p-3 text-[10px] font-black text-slate-400">Parameter</th>
+                    <th class="p-3 text-[10px] font-black text-slate-400">Type</th>
+                    <th class="p-3 text-[10px] font-black text-slate-400">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr>
+                    <td class="p-3 font-mono text-xs text-amber-600">status</td>
+                    <td class="p-3 text-xs font-bold">string</td>
+                    <td class="p-3 text-xs text-slate-500">الحالة: available, rented, reserved</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-mono text-xs text-amber-600">building_number</td>
+                    <td class="p-3 text-xs font-bold">integer</td>
+                    <td class="p-3 text-xs text-slate-500">تصفية برقم المبنى</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Endpoint: POST Bookings -->
+        <div id="post-bookings" class="panel overflow-hidden">
+          <div class="bg-slate-50 p-6 border-b border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <span class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-black text-white">POST</span>
+              <code class="text-sm font-black text-slate-900 ltr">/bookings</code>
+            </div>
+            <span class="rounded-full bg-slate-200 px-3 py-1 text-[10px] font-black text-slate-600 uppercase">Scope: write</span>
+          </div>
+          <div class="p-8">
+            <h3 class="text-lg font-black text-slate-900">إنشاء طلب حجز</h3>
+            <p class="mt-3 text-sm font-medium text-slate-600">إرسال طلب حجز جديد لوحدات محددة. يتم تحويل الطلب تلقائياً لنظام المتابعة.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error Codes Section -->
+      <section id="errors" class="panel p-8 lg:p-10">
+        <h2 class="text-2xl font-black text-slate-950 flex items-center gap-4">
+          <i data-lucide="alert-triangle" class="h-7 w-7 text-rose-600"></i>
+          كودات الأخطاء (Error Codes)
+        </h2>
+        <div class="mt-8 table-container">
+          <table class="w-full text-right">
+            <thead>
+              <tr class="bg-slate-50">
+                <th class="p-4 text-[10px] font-black text-slate-400">الكود</th>
+                <th class="p-4 text-[10px] font-black text-slate-400">المعنى</th>
+                <th class="p-4 text-[10px] font-black text-slate-400">السبب الشائع</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr>
+                <td class="p-4 font-black text-slate-900">400</td>
+                <td class="p-4 text-xs font-bold text-rose-600">Bad Request</td>
+                <td class="p-4 text-xs text-slate-500">بيانات ناقصة أو صيغة JSON خاطئة</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-black text-slate-900">401</td>
+                <td class="p-4 text-xs font-bold text-rose-600">Unauthorized</td>
+                <td class="p-4 text-xs text-slate-500">مفتاح API ناقص أو غير صحيح</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-black text-slate-900">403</td>
+                <td class="p-4 text-xs font-bold text-rose-600">Forbidden</td>
+                <td class="p-4 text-xs text-slate-500">المفتاح ليس له الصلاحية المطلوبة</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-black text-slate-900">404</td>
+                <td class="p-4 text-xs font-bold text-rose-600">Not Found</td>
+                <td class="p-4 text-xs text-slate-500">المسار أو المورد غير موجود</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

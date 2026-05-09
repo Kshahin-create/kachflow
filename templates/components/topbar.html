@@ -1,32 +1,64 @@
-<header class="topbar">
-  <div class="flex h-full items-center gap-3 px-4 sm:px-6 lg:px-8">
-    <button class="icon-btn lg:hidden" @click="drawer=true" aria-label="القائمة">
-      <i data-lucide="menu"></i>
-    </button>
+<header class="topbar sticky top-0 z-30 h-20 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+  <div class="mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    
+    <div class="flex items-center gap-4">
+      <button class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 lg:hidden" @click="drawer=true">
+        <i data-lucide="menu" class="h-5 w-5"></i>
+      </button>
 
-    <div class="min-w-0 flex-1">
-      {% if current_project %}
-        <div class="truncate text-xs font-bold text-emerald-700">المشروع الحالي</div>
-        <div class="truncate text-sm font-black text-slate-950 sm:text-base">{{ current_project.name }}</div>
-      {% else %}
-        <div class="text-sm font-black text-slate-950">KashFlow</div>
-        <div class="text-xs font-bold text-slate-500">اختر مشروعًا للبدء</div>
-      {% endif %}
+      <div class="hidden sm:block">
+        {% if current_project %}
+          <div class="flex items-center gap-2">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">المشروع النشط</span>
+          </div>
+          <h2 class="text-lg font-black text-slate-900 leading-none mt-1">{{ current_project.name }}</h2>
+        {% else %}
+          <h2 class="text-lg font-black text-slate-900 leading-none">لوحة التحكم</h2>
+          <p class="text-xs font-bold text-slate-400 mt-1">مرحباً بك مجدداً في كاش فلو</p>
+        {% endif %}
+      </div>
     </div>
 
-    <div class="topbar-search hidden md:flex">
-      <i data-lucide="search"></i>
-      <input placeholder="بحث سريع">
+    <div class="flex flex-1 max-w-md items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2 text-slate-400 focus-within:border-emerald-500/50 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all hidden md:flex">
+      <i data-lucide="search" class="h-4 w-4"></i>
+      <input
+        type="text"
+        {% if current_project.project_type == "ecommerce" %}
+          placeholder="ابحث عن طلبات، منتجات، أو عملاء..."
+        {% elif current_project.project_type == "real_estate" or current_project.project_type == "leasing" %}
+          placeholder="ابحث عن وحدات، عقود، أو مستأجرين..."
+        {% elif current_project.project_type == "ads" %}
+          placeholder="ابحث عن حملات أو مؤشرات أداء..."
+        {% elif current_project.project_type == "investment" %}
+          placeholder="ابحث عن أصول أو محافظ..."
+        {% else %}
+          placeholder="ابحث داخل المشروع الحالي..."
+        {% endif %}
+        class="w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
+      >
+      <kbd class="hidden rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-400 sm:inline-block">/</kbd>
     </div>
 
-    <a class="btn-secondary hidden sm:inline-flex" href="{% url 'project_select' %}">
-      <i data-lucide="repeat-2" class="h-4 w-4"></i>
-      تغيير المشروع
-    </a>
+    <div class="flex items-center gap-2 sm:gap-4">
+      <button class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition-all hover:bg-slate-50">
+        <i data-lucide="bell" class="h-5 w-5"></i>
+        <span class="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-orange-600 border-2 border-white"></span>
+      </button>
 
-    <div class="user-pill">
-      <i data-lucide="user-round"></i>
-      <span>{{ request.user.username }}</span>
+      <div class="h-8 w-px bg-slate-300 hidden sm:block"></div>
+
+      <div class="flex items-center gap-3">
+        <div class="text-left hidden sm:block text-right">
+          <p class="text-sm font-black text-slate-950 leading-none">{{ request.user.username }}</p>
+          <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-tighter">Super Admin</p>
+        </div>
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 p-0.5 shadow-lg">
+          <div class="flex h-full w-full items-center justify-center rounded-[9px] bg-white text-slate-900 font-black text-sm">
+            {{ request.user.username|first|upper }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </header>

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل حساب المستأجر | {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'real_estate_tenant_accounts' %}" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition">
+          <i data-lucide="arrow-right" class="h-5 w-5"></i>
+        </a>
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Tenant Account</span>
+      </div>
+      <h1 class="mt-4 text-4xl font-black tracking-tight text-slate-50 md:text-5xl drop-shadow-lg">تفاصيل حساب المستأجر</h1>
+      <p class="mt-4 text-lg font-medium text-slate-200/90 leading-relaxed max-w-2xl">المعرف: {{ tenant_account_id }}</p>
+    </div>
+  </header>
+
+  {% if error_message %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <h3 class="text-sm font-black text-rose-900">فشل جلب بيانات الحساب</h3>
+        <p class="mt-1 text-xs font-bold text-rose-700/80">{{ error_message }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if account %}
+    <div class="grid gap-8 lg:grid-cols-12">
+      <div class="lg:col-span-5 space-y-6">
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-4 min-w-0">
+              <div class="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 shadow-xl">
+                <i data-lucide="id-card" class="h-7 w-7"></i>
+              </div>
+              <div class="min-w-0">
+                <h2 class="text-xl font-black text-slate-900 truncate">{{ account.full_name|default:"حساب مستأجر" }}</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate mt-1">{{ account.business_name|default:"-" }}</p>
+              </div>
+            </div>
+            <span class="rounded-full bg-slate-50 text-[10px] font-black text-slate-600 px-3 py-1.5 border border-slate-100">{{ account.units_count|default:0 }} وحدات</span>
+          </div>
+
+          <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="phone" class="h-3 w-3"></i> الجوال
+              </div>
+              <span class="text-sm font-black text-slate-900">{{ account.phone|default:"-" }}</span>
+            </div>
+            <div class="bg-emerald-50/60 rounded-2xl p-4 border border-emerald-100">
+              <div class="flex items-center gap-2 text-[10px] font-black text-emerald-600/70 uppercase mb-1">
+                <i data-lucide="banknote" class="h-3 w-3"></i> متبقي
+              </div>
+              <span class="text-sm font-black text-emerald-700">{{ account.remaining_total|default:0 }} ريال</span>
+            </div>
+          </div>
+        </div>
+
+        {% if not is_local %}
+          <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-black text-slate-950 flex items-center gap-3 mb-6">
+              <i data-lucide="link" class="h-5 w-5 text-emerald-600"></i>
+              ربط وحدات جديدة
+            </h3>
+            <form method="post" class="space-y-4">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="add_units">
+              <textarea name="unit_ids" rows="4" class="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm font-bold outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr" placeholder="ضع unit_ids مفصولة بفواصل أو أسطر جديدة"></textarea>
+              <button type="submit" class="w-full flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-black text-white hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200">
+                <i data-lucide="plus" class="h-4 w-4 text-amber-400"></i>
+                ربط الوحدات
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="lg:col-span-7 space-y-6">
+        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-black text-slate-950 flex items-center gap-3">
+              <i data-lucide="layout-list" class="h-5 w-5 text-emerald-600"></i>
+              الوحدات المرتبطة
+            </h3>
+            <span class="text-xs font-black text-slate-400">{{ account.units|length }} وحدة</span>
+          </div>
+          <div class="p-8 space-y-3">
+            {% for u in account.units %}
+              <div class="flex items-center justify-between gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
+                <div class="min-w-0">
+                  <div class="text-sm font-black text-slate-900 truncate">{{ u.buildingNumber|default:u.building_number|default:"-" }} - وحدة {{ u.unitNumber|default:u.unit_number|default:"-" }}</div>
+                  <div class="text-[10px] font-bold text-slate-500 ltr-input" dir="ltr">unit_id: {{ u.id|default:u.unit_id|default:"-" }}</div>
+                </div>
+                {% if not is_local %}
+                  {% if u.id or u.unit_id %}
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="remove_unit">
+                      <input type="hidden" name="unit_id" value="{{ u.id|default:u.unit_id }}">
+                      <button type="submit" class="flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2 text-xs font-black text-slate-600 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 transition-all">
+                        <i data-lucide="unlink" class="h-4 w-4"></i>
+                        إزالة
+                      </button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              </div>
+            {% empty %}
+              <div class="text-center py-16 text-slate-500 font-bold">لا توجد وحدات مرتبطة.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-black text-slate-950 flex items-center gap-3">
+              <i data-lucide="receipt-text" class="h-5 w-5 text-emerald-600"></i>
+              الفواتير
+            </h3>
+            {% if not is_local %}
+              <a href="{% url 'real_estate_invoices' %}?tenant_account_id={{ tenant_account_id }}" class="text-xs font-black text-emerald-600 hover:text-emerald-700 transition-colors">عرض كل الفواتير</a>
+            {% else %}
+              <span class="text-xs font-black text-slate-400">فواتير API غير متاحة</span>
+            {% endif %}
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse">
+              <thead>
+                <tr class="bg-slate-50/50 border-b border-slate-100">
+                  <th class="p-6 text-[10px] font-black text-slate-400 uppercase">رقم</th>
+                  <th class="p-6 text-[10px] font-black text-slate-400 uppercase">التاريخ</th>
+                  <th class="p-6 text-[10px] font-black text-slate-400 uppercase">المبلغ</th>
+                  <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الحالة</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-50">
+                {% for inv in account.invoices %}
+                  <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="p-6 text-xs font-black text-slate-900 ltr-input" dir="ltr">{{ inv.number|default:inv.invoice_number|default:inv.id|default:"-" }}</td>
+                    <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ inv.date|default:inv.created_at|default:"-" }}</td>
+                    <td class="p-6 text-sm font-black text-slate-950">{{ inv.amount|default:inv.total|default:0 }} ريال</td>
+                    <td class="p-6">
+                      <span class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border {% if inv.paid == True or inv.status == 'paid' %}bg-emerald-50 text-emerald-600 border-emerald-100{% else %}bg-amber-50 text-amber-600 border-amber-100{% endif %}">{{ inv.status|default:inv.paid|yesno:"مدفوع,غير مدفوع" }}</span>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="4" class="p-12 text-center text-slate-500 font-bold">لا توجد فواتير.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-black text-slate-950 flex items-center gap-3">
+              <i data-lucide="code" class="h-5 w-5 text-emerald-600"></i>
+              البيانات الخام (JSON)
+            </h3>
+            <button type="button" class="text-xs font-black text-slate-400 hover:text-slate-600 transition" onclick="navigator.clipboard.writeText(document.getElementById('rawAccountJson').innerText)">
+              نسخ
+            </button>
+          </div>
+          <div class="p-8 bg-slate-900 overflow-x-auto">
+            <pre id="rawAccountJson" class="text-emerald-300 font-mono text-xs ltr">{{ account|pprint }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="panel p-20 text-center">
+      <div class="mx-auto h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+        <i data-lucide="id-card" class="h-10 w-10"></i>
+      </div>
+      <h3 class="mt-6 text-xl font-black text-slate-900">لا توجد بيانات للحساب</h3>
+      <p class="mt-2 text-slate-500">تأكد من المعرف أو من إعدادات الربط.</p>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
+{% endblock %}

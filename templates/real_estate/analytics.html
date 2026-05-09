@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+{% block title %}إحصائيات تفصيلية | {{ project.name }}{% endblock %}
+
+{% block content %}
+{% if empty_project %}
+  <div class="flex min-h-[400px] flex-col items-center justify-center rounded-3xl bg-white p-12 shadow-sm">
+    <div class="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+      <i data-lucide="folder-open" class="h-10 w-10"></i>
+    </div>
+    <h2 class="mt-6 text-xl font-black text-slate-900">لا توجد مشاريع متاحة</h2>
+    <p class="mt-2 text-slate-500 text-center max-w-sm">يرجى اختيار مشروع نشط من القائمة الجانبية.</p>
+  </div>
+{% else %}
+<div class="space-y-8 pb-12" x-data="{ period: '{{ period_ctx.period }}' }">
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Analytics</span>
+        <span class="rounded-full bg-amber-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-400 border border-amber-500/30">
+          من {{ period_ctx.start_date }} إلى {{ period_ctx.end_date }}
+        </span>
+      </div>
+      <h1 class="mt-4 text-4xl lg:text-5xl font-black tracking-tight leading-none text-slate-50 drop-shadow-lg">{{ project.name }}</h1>
+      <p class="mt-4 text-slate-200 font-medium max-w-3xl text-lg opacity-90">لوحة إحصائيات تفصيلية تجمع الماليّات، بيانات العقارات، النمو، وربط الـ API ضمن فترة زمنية قابلة للتخصيص.</p>
+    </div>
+  </header>
+
+  <div class="panel p-8 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm">
+    <form method="get" class="grid gap-6 lg:grid-cols-12 items-end">
+      <div class="lg:col-span-3 space-y-2">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">الفترة</label>
+        <select name="period" x-model="period" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black outline-none focus:border-emerald-500 focus:bg-white transition-all">
+          <option value="today">اليوم</option>
+          <option value="month">شهر</option>
+          <option value="year">سنة</option>
+          <option value="custom">مخصص</option>
+        </select>
+      </div>
+
+      <div class="lg:col-span-2 space-y-2" x-show="period === 'month' || period === 'year'">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">السنة</label>
+        <input name="year" value="{{ period_ctx.year }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr">
+      </div>
+
+      <div class="lg:col-span-2 space-y-2" x-show="period === 'month'">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">الشهر</label>
+        <input name="month" value="{{ period_ctx.month }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black outline-none focus:border-emerald-500 focus:bg-white transition-all ltr-input" dir="ltr">
+      </div>
+
+      <div class="lg:col-span-2 space-y-2" x-show="period === 'custom'">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">من</label>
+        <input type="date" name="start" value="{{ period_ctx.start_date|date:'Y-m-d' }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black outline-none focus:border-emerald-500 focus:bg-white transition-all">
+      </div>
+
+      <div class="lg:col-span-2 space-y-2" x-show="period === 'custom'">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">إلى</label>
+        <input type="date" name="end" value="{{ period_ctx.end_date|date:'Y-m-d' }}" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black outline-none focus:border-emerald-500 focus:bg-white transition-all">
+      </div>
+
+      <div class="lg:col-span-3 flex justify-end">
+        <button type="submit" class="w-full lg:w-auto flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-10 py-3.5 text-sm font-black text-white hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200">
+          <i data-lucide="filter" class="h-4 w-4 text-amber-400"></i>
+          تطبيق
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي الدخل</span>
+      <div class="mt-2 text-3xl font-black text-emerald-600">{{ finance.income_total|floatformat:0 }} <span class="text-xs font-black text-slate-400">SAR</span></div>
+      <div class="mt-2 text-xs font-bold text-slate-500">عدد القيود: {{ finance.count }}</div>
+    </div>
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">إجمالي المصروفات</span>
+      <div class="mt-2 text-3xl font-black text-rose-600">{{ finance.expense_total|floatformat:0 }} <span class="text-xs font-black text-slate-400">SAR</span></div>
+      <div class="mt-2 text-xs font-bold text-slate-500">صافي: {{ finance.net_total|floatformat:0 }} SAR</div>
+    </div>
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">نسبة الإشغال</span>
+      <div class="mt-2 text-3xl font-black text-slate-950">{{ real_estate.occupancy_rate }}%</div>
+      <div class="mt-3 w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-emerald-500" style="width: {{ real_estate.occupancy_rate }}%"></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-sm">
+      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">نسبة التحصيل</span>
+      <div class="mt-2 text-3xl font-black text-slate-950">{{ real_estate.collection_rate }}%</div>
+      <div class="mt-3 w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div class="h-full bg-amber-500" style="width: {{ real_estate.collection_rate }}%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-8 lg:grid-cols-12">
+    <div class="lg:col-span-8 space-y-8">
+      <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+            <i data-lucide="activity" class="h-5 w-5 text-emerald-600"></i>
+            الدخل مقابل المصروفات (يومي)
+          </h2>
+        </div>
+        <div class="relative h-72">
+          <canvas id="financeDailyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+            <i data-lucide="receipt-text" class="h-5 w-5 text-emerald-600"></i>
+            آخر القيود المالية
+          </h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-right border-collapse">
+            <thead>
+              <tr class="bg-slate-50/50 border-b border-slate-100">
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">التاريخ</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">التصنيف</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">الوصف</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">النوع</th>
+                <th class="p-6 text-[10px] font-black text-slate-400 uppercase">المبلغ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              {% for t in finance.recent %}
+                <tr class="hover:bg-slate-50/50 transition-colors">
+                  <td class="p-6 text-xs font-bold text-slate-600 ltr-input" dir="ltr">{{ t.date }}</td>
+                  <td class="p-6 text-xs font-black text-slate-900">{{ t.category }}</td>
+                  <td class="p-6 text-xs font-bold text-slate-600">{{ t.desc|default:"-" }}</td>
+                  <td class="p-6">
+                    <span class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border {% if t.type == 'income' or t.type == 'deposit' %}bg-emerald-50 text-emerald-600 border-emerald-100{% else %}bg-rose-50 text-rose-600 border-rose-100{% endif %}">
+                      {{ t.type }}
+                    </span>
+                  </td>
+                  <td class="p-6 text-sm font-black text-slate-950">{{ t.amount|floatformat:0 }} SAR</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="p-12 text-center text-slate-500 font-bold">لا توجد قيود ضمن الفترة.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-4 space-y-8">
+      <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+            <i data-lucide="pie-chart" class="h-5 w-5 text-emerald-600"></i>
+            حالة الوحدات
+          </h2>
+        </div>
+        <div class="relative h-64">
+          <canvas id="unitStatusChart"></canvas>
+        </div>
+        <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+          <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-3">
+            <div class="text-[10px] font-black text-emerald-600/70 uppercase">مؤجر</div>
+            <div class="text-xl font-black text-emerald-700">{{ real_estate.rented }}</div>
+          </div>
+          <div class="rounded-2xl bg-amber-50 border border-amber-100 p-3">
+            <div class="text-[10px] font-black text-amber-600/70 uppercase">محجوز</div>
+            <div class="text-xl font-black text-amber-700">{{ real_estate.reserved }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3">
+            <div class="text-[10px] font-black text-slate-500 uppercase">شاغر</div>
+            <div class="text-xl font-black text-slate-900">{{ real_estate.vacant }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+            <i data-lucide="trending-up" class="h-5 w-5 text-emerald-600"></i>
+            النمو (يومي)
+          </h2>
+        </div>
+        <div class="relative h-64">
+          <canvas id="growthChart"></canvas>
+        </div>
+        <div class="mt-6 grid grid-cols-2 gap-3">
+          <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+            <div class="text-[10px] font-black text-slate-400 uppercase">استفسارات جديدة</div>
+            <div class="mt-1 text-2xl font-black text-slate-950">{{ growth.leads_count }}</div>
+          </div>
+          <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+            <div class="text-[10px] font-black text-slate-400 uppercase">عملاء جدد</div>
+            <div class="mt-1 text-2xl font-black text-slate-950">{{ growth.customers_count }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 rounded-[2rem] p-8 text-white shadow-xl">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-black flex items-center gap-3">
+            <i data-lucide="plug-zap" class="h-5 w-5 text-amber-400"></i>
+            حالة الـ API
+          </h2>
+          <span class="text-[10px] font-black text-slate-300 ltr-input" dir="ltr">{{ api.connection.status|default:"-" }}</span>
+        </div>
+        <div class="mt-6 space-y-3 text-xs font-bold text-slate-300">
+          <div class="flex items-center justify-between">
+            <span>آخر مزامنة</span>
+            <span class="ltr-input" dir="ltr">{{ api.connection.last_sync_at|default:"-" }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Raw Events داخل الفترة</span>
+            <span>{{ api.raw_events_count }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>تحديثات الوحدات داخل الفترة</span>
+            <span>{{ real_estate.unit_updates }}</span>
+          </div>
+        </div>
+        <div class="mt-6 rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3">أحدث Endpoints</div>
+          <div class="space-y-2">
+            {% for e in api.raw_events %}
+              <div class="flex items-center justify-between gap-3">
+                <span class="truncate text-slate-100 ltr-input" dir="ltr">{{ e.endpoint }}</span>
+                <span class="text-slate-400 ltr-input" dir="ltr">{{ e.received_at|date:"Y-m-d H:i" }}</span>
+              </div>
+            {% empty %}
+              <div class="text-slate-400">لا توجد أحداث ضمن الفترة.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    const payload = JSON.parse('{{ chart_payload|escapejs }}');
+    const fontFamily = 'IBM Plex Sans Arabic';
+
+    const financeCtx = document.getElementById('financeDailyChart');
+    if (financeCtx) {
+      new Chart(financeCtx, {
+        type: 'line',
+        data: {
+          labels: payload.financeDaily.labels,
+          datasets: [
+            { label: 'الدخل', data: payload.financeDaily.income, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.10)', tension: 0.35, fill: true, borderWidth: 2, pointRadius: 2 },
+            { label: 'المصروفات', data: payload.financeDaily.expense, borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.08)', tension: 0.35, fill: true, borderWidth: 2, pointRadius: 2 },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: fontFamily, size: 11, weight: 'bold' } } },
+          },
+          scales: {
+            x: { ticks: { font: { family: fontFamily, size: 10 } }, grid: { display: false } },
+            y: { ticks: { font: { family: fontFamily, size: 10 } } },
+          },
+        },
+      });
+    }
+
+    const statusCtx = document.getElementById('unitStatusChart');
+    if (statusCtx) {
+      new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: payload.unitStatus.labels,
+          datasets: [{ data: payload.unitStatus.values, backgroundColor: ['#10b981', '#f59e0b', '#e2e8f0'], borderWidth: 0, hoverOffset: 8 }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: fontFamily, size: 11, weight: 'bold' }, usePointStyle: true } },
+          },
+        },
+      });
+    }
+
+    const growthCtx = document.getElementById('growthChart');
+    if (growthCtx) {
+      new Chart(growthCtx, {
+        type: 'bar',
+        data: {
+          labels: payload.growth.labels,
+          datasets: [
+            { label: 'استفسارات', data: payload.growth.leads, backgroundColor: '#0ea5e9', borderRadius: 10 },
+            { label: 'عملاء', data: payload.growth.customers, backgroundColor: '#a78bfa', borderRadius: 10 },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: fontFamily, size: 11, weight: 'bold' } } },
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: fontFamily, size: 10 } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' }, ticks: { font: { family: fontFamily, size: 10 } } },
+          },
+        },
+      });
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}

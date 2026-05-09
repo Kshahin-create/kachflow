@@ -1,1 +1,125 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">المنتجات</h1><div class="panel">{% for p in products %}<div class="row"><span>{{ p.name }}</span><span>{{ p.selling_price }}</span></div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}منتجات المتجر{% endblock %}
+{% block content %}
+<div class="space-y-6 pb-10 max-w-7xl mx-auto">
+  <!-- Header Section -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div class="space-y-1">
+      <h1 class="text-3xl font-black tracking-tight text-slate-900">المنتجات</h1>
+      <p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+        إدارة منتجات متجر Wuilt والمخزون والتسعير.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="relative group flex-1 md:flex-none min-w-[240px]">
+        <input type="text" id="productSearch" placeholder="ابحث باسم المنتج أو SKU..." 
+               class="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none">
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </div>
+      </div>
+      <a href="?sync=1" class="btn btn-primary shadow-lg shadow-primary/20 flex items-center gap-2 px-6 rounded-xl hover:scale-[1.02] active:scale-95 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        مزامنة المنتجات
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="space-y-3">
+      {% for message in messages %}
+        <div class="alert shadow-sm border flex items-center gap-3 p-4 rounded-xl animate-in fade-in slide-in-from-top-2
+          {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-100{% elif message.tags == 'error' %}bg-rose-50 text-rose-700 border-rose-100{% else %}bg-blue-50 text-blue-700 border-blue-100{% endif %}">
+          <span class="font-bold text-sm">{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Products Grid/Table -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="table w-full border-collapse" id="productsTable">
+        <thead>
+          <tr class="text-slate-400 text-[11px] uppercase tracking-widest bg-slate-50/50 border-b border-slate-100">
+            <th class="px-6 py-4 text-right font-black">المنتج</th>
+            <th class="px-6 py-4 text-center font-black">التصنيف</th>
+            <th class="px-6 py-4 text-center font-black">SKU</th>
+            <th class="px-6 py-4 text-left font-black">السعر</th>
+            <th class="px-6 py-4 text-center font-black">المخزون</th>
+            <th class="px-6 py-4 text-center font-black">الحالة</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for p in products %}
+          <tr class="hover:bg-slate-50/80 transition-all cursor-pointer group product-row" onclick="window.location='{% url 'ecommerce_product_detail' p.id %}'">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all duration-300 overflow-hidden shrink-0">
+                  {% if p.images_json %}
+                    <img src="{{ p.images_json.0.src }}" class="w-full h-full object-cover">
+                  {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  {% endif %}
+                </div>
+                <div>
+                  <div class="font-black text-slate-700 text-sm">{{ p.name }}</div>
+                  <div class="text-[10px] text-slate-400 font-mono tracking-tighter">{{ p.handle|truncatechars:30 }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="text-xs font-bold text-slate-500">{{ p.category|default:"-" }}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{ p.sku|default:"-" }}</span>
+            </td>
+            <td class="px-6 py-4 text-left">
+              <div class="font-black text-slate-900 text-base">{{ p.selling_price }}</div>
+              <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ p.currency }}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex flex-col items-center">
+                <span class="font-black text-sm {% if p.stock_quantity > 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ p.stock_quantity }}</span>
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">متوفر</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase shadow-sm
+                {% if p.status == 'ACTIVE' %}bg-emerald-100 text-emerald-700 border border-emerald-200/50
+                {% else %}bg-slate-100 text-slate-500 border border-slate-200/50{% endif %}">
+                {{ p.status }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                </div>
+                <h3 class="text-slate-400 font-bold">لا توجد منتجات مسجلة حالياً</h3>
+                <a href="?sync=1" class="text-primary text-sm font-bold hover:underline">اضغط هنا للمزامنة مع Wuilt</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('productSearch')?.addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.product-row');
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(term) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

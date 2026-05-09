@@ -70,8 +70,35 @@ def cashflow_page(request):
     return render(request, "finance/cashflow.html", {})
 
 
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import TransactionForm
+
 @login_required
 def transaction_create_page(request):
-    if not get_user_projects(request.user).exists():
-        raise PermissionDenied
-    return render(request, "finance/transaction_form.html", {"projects": get_user_projects(request.user), "accounts": Account.objects.filter(project__in=get_user_projects(request.user))})
+    if request.method == "POST":
+        form = TransactionForm(request.POST, user=request.user)
+        if form.is_valid():
+            transaction = form.save(commit=False)
+            transaction.created_by = request.user
+            transaction.save()
+            messages.success(request, "تمت إضافة المعاملة بنجاح")
+            return redirect("finance_transactions")
+    else:
+        form = TransactionForm(user=request.user)
+    
+    return render(request, "finance/transaction_form.html", {"form": form})
+
+@login_required
+def transaction_edit_page(request, pk):
+    transaction = get_object_or_404(Transaction, pk=pk, project__in=get_user_projects(request.user))
+    if request.method == "POST":
+        form = TransactionForm(request.POST, instance=transaction, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "تم تحديث المعاملة بنجاح")
+            return redirect("finance_transactions")
+    else:
+        form = TransactionForm(instance=transaction, user=request.user)
+    
+    return render(request, "finance/transaction_form.html", {"form": form, "is_edit": True})

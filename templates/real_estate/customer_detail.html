@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}تفاصيل العميل | {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+  <header class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+    <div class="relative z-10 flex-1">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'real_estate_customers' %}" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition">
+          <i data-lucide="arrow-right" class="h-5 w-5"></i>
+        </a>
+        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-400 border border-emerald-500/30">Customer Detail</span>
+      </div>
+      <h1 class="mt-4 text-4xl font-black tracking-tight text-slate-50 md:text-5xl drop-shadow-lg">تفاصيل العميل</h1>
+      <p class="mt-4 text-lg font-medium text-slate-200/90 leading-relaxed max-w-2xl">المعرف: {{ user_id }}</p>
+    </div>
+  </header>
+
+  {% if error_message %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <h3 class="text-sm font-black text-rose-900">فشل جلب بيانات العميل</h3>
+        <p class="mt-1 text-xs font-bold text-rose-700/80">{{ error_message }}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if customer %}
+    <div class="grid gap-8 lg:grid-cols-12">
+      <div class="lg:col-span-5 space-y-6">
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-4 min-w-0">
+              <div class="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 shadow-xl">
+                <i data-lucide="user" class="h-7 w-7"></i>
+              </div>
+              <div class="min-w-0">
+                <h2 class="text-xl font-black text-slate-900 truncate">{{ customer.full_name|default:"عميل" }}</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate mt-1">{{ customer.business_name|default:"-" }}</p>
+              </div>
+            </div>
+            <span class="rounded-full bg-slate-50 text-[10px] font-black text-slate-600 px-3 py-1.5 border border-slate-100">API</span>
+          </div>
+
+          <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="phone" class="h-3 w-3"></i> الجوال
+              </div>
+              <span class="text-sm font-black text-slate-900">{{ customer.phone|default:"-" }}</span>
+            </div>
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+              <div class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase mb-1">
+                <i data-lucide="mail" class="h-3 w-3"></i> البريد
+              </div>
+              <span class="text-sm font-black text-slate-900 break-all">{{ customer.email|default:"-" }}</span>
+            </div>
+          </div>
+
+          {% if customer.notes %}
+            <div class="mt-6 p-4 rounded-2xl bg-amber-50/50 border border-amber-100">
+              <div class="flex items-start gap-3">
+                <i data-lucide="sticky-note" class="h-4 w-4 text-amber-500 shrink-0 mt-0.5"></i>
+                <p class="text-sm font-medium text-amber-800 leading-relaxed">{{ customer.notes }}</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 space-y-6">
+        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-lg font-black text-slate-950 flex items-center gap-3">
+              <i data-lucide="code" class="h-5 w-5 text-emerald-600"></i>
+              البيانات الخام (JSON)
+            </h2>
+            <button type="button" class="text-xs font-black text-slate-400 hover:text-slate-600 transition" onclick="navigator.clipboard.writeText(document.getElementById('rawJson').innerText)">
+              نسخ
+            </button>
+          </div>
+          <div class="p-8 bg-slate-900 overflow-x-auto">
+            <pre id="rawJson" class="text-emerald-300 font-mono text-xs ltr">{{ customer|pprint }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="panel p-20 text-center">
+      <div class="mx-auto h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+        <i data-lucide="user-x" class="h-10 w-10"></i>
+      </div>
+      <h3 class="mt-6 text-xl font-black text-slate-900">لا توجد بيانات لهذا العميل</h3>
+      <p class="mt-2 text-slate-500">تأكد من المعرف أو من إعدادات الربط.</p>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
+</script>
+{% endblock %}
