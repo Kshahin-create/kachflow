@@ -262,6 +262,12 @@
                 <span class="sidebar-label" x-show="!sidebarCollapsed">تكامل API العقارات</span>
               </a>
             {% endif %}
+            {% if request.user.is_staff %}
+              <a href="{% url 'backups_page' %}" class="sidebar-link {% if active == 'backups_page' or active == 'restore_page' or active == 'settings' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+                <i data-lucide="database" class="sidebar-icon"></i>
+                <span class="sidebar-label" x-show="!sidebarCollapsed">نسخ احتياطي</span>
+              </a>
+            {% endif %}
             <a href="{% url 'audit_log' %}" class="sidebar-link {% if active == 'audit_log' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
               <i data-lucide="history" class="sidebar-icon"></i>
               <span class="sidebar-label" x-show="!sidebarCollapsed">سجل النشاط</span>

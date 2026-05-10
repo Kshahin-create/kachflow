@@ -16,3 +16,15 @@ class AuditLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class DatabaseBackup(models.Model):
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
+    label = models.CharField(max_length=140, blank=True)
+    sha256 = models.CharField(max_length=64, blank=True)
+    size_bytes = models.PositiveBigIntegerField(default=0)
+    payload_gzip = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]

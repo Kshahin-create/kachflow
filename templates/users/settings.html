@@ -1,1 +1,132 @@
-{% extends "base.html" %}{% block content %}<h1 class="mb-5 text-2xl font-bold">الإعدادات</h1><div class="panel">إعدادات النظام العامة.</div>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-black text-slate-950">النسخ الاحتياطي والاسترجاع</h1>
+      <p class="mt-1 text-sm font-bold text-slate-500">اعمل Backup للبيانات واسترجعها من ملف JSON</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a href="{% url 'settings' %}" class="rounded-2xl px-4 py-2 text-sm font-black border {% if tab == 'overview' %}border-slate-900 bg-slate-900 text-white{% else %}border-slate-200 bg-white text-slate-800 hover:bg-slate-50{% endif %}">الصفحة الرئيسية</a>
+      <a href="{% url 'backups_page' %}" class="rounded-2xl px-4 py-2 text-sm font-black border {% if tab == 'backups' %}border-slate-900 bg-slate-900 text-white{% else %}border-slate-200 bg-white text-slate-800 hover:bg-slate-50{% endif %}">عمل Backup</a>
+      <a href="{% url 'restore_page' %}" class="rounded-2xl px-4 py-2 text-sm font-black border {% if tab == 'restore' %}border-slate-900 bg-slate-900 text-white{% else %}border-slate-200 bg-white text-slate-800 hover:bg-slate-50{% endif %}">استرجاع Backup</a>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-6">
+    {% if tab == 'overview' %}
+      <div class="grid gap-4 md:grid-cols-2">
+        <a href="{% url 'backups_page' %}" class="rounded-3xl border border-slate-200 bg-white p-6 hover:bg-slate-50/40 transition-colors">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-950">عمل نسخة احتياطية</h2>
+              <p class="mt-1 text-sm font-bold text-slate-500">حفظ نسخة كاملة من قاعدة البيانات</p>
+            </div>
+            <i data-lucide="database" class="h-6 w-6 text-emerald-600"></i>
+          </div>
+        </a>
+        <a href="{% url 'restore_page' %}" class="rounded-3xl border border-slate-200 bg-white p-6 hover:bg-slate-50/40 transition-colors">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-950">استرجاع من ملف JSON</h2>
+              <p class="mt-1 text-sm font-bold text-slate-500">رفع ملف Backup وإرجاع البيانات</p>
+            </div>
+            <i data-lucide="upload" class="h-6 w-6 text-amber-600"></i>
+          </div>
+        </a>
+      </div>
+
+      <div class="rounded-3xl border border-slate-200 bg-white p-6">
+        <h2 class="text-lg font-black text-slate-950">معلومة مهمة</h2>
+        <p class="mt-2 text-sm font-bold text-slate-600 leading-relaxed">
+          على السيرفر، قاعدة البيانات مختلفة عن جهازك المحلي؛ لذلك المشاريع لا تظهر تلقائياً إلا بعد نقل البيانات أو إنشاء مشاريع جديدة.
+        </p>
+      </div>
+    {% endif %}
+
+    {% if tab == 'backups' %}
+      <div class="rounded-3xl border border-slate-200 bg-white p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-black text-slate-950">عمل Backup</h2>
+            <p class="mt-1 text-sm font-bold text-slate-500">بيطلع ملف JSON تقدر تحمّله وتسترجعه وقت ما تحب</p>
+          </div>
+        </div>
+
+        {% if request.user.is_staff %}
+          <form method="post" action="{% url 'settings' %}" class="mt-4 flex flex-col sm:flex-row gap-3 sm:items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_backup">
+            <input type="hidden" name="next" value="{% url 'backups_page' %}">
+            <div class="flex-1">
+              <label class="block text-xs font-black text-slate-600 mb-2">اسم النسخة</label>
+              <input name="label" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="مثال: قبل تحديث النظام">
+            </div>
+            <button class="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-900" type="submit">إنشاء Backup</button>
+          </form>
+
+          <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50">
+                <tr class="text-slate-600">
+                  <th class="px-4 py-3 text-right font-black">التاريخ</th>
+                  <th class="px-4 py-3 text-right font-black">الاسم</th>
+                  <th class="px-4 py-3 text-right font-black">الحجم</th>
+                  <th class="px-4 py-3 text-right font-black">تحميل</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                {% for b in backups %}
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-4 py-3 font-bold text-slate-700">{{ b.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="px-4 py-3 font-bold text-slate-700">{{ b.label }}</td>
+                    <td class="px-4 py-3 font-bold text-slate-500">{{ b.size_bytes }} B</td>
+                    <td class="px-4 py-3">
+                      <a class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+                         href="{% url 'backup_download' b.id %}" download>تنزيل JSON</a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td class="px-4 py-6 text-center text-sm font-bold text-slate-500" colspan="4">لا توجد نسخ احتياطية بعد</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+            إدارة النسخ الاحتياطية متاحة للمشرف فقط.
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if tab == 'restore' %}
+      <div class="rounded-3xl border border-slate-200 bg-white p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-black text-slate-950">استرجاع Backup</h2>
+            <p class="mt-1 text-sm font-bold text-slate-500">ارفع ملف JSON اللي اتعمل من النظام علشان يرجع كل البيانات</p>
+          </div>
+        </div>
+
+        {% if request.user.is_staff %}
+          <form method="post" enctype="multipart/form-data" class="mt-4 grid gap-4 max-w-xl">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="restore_backup">
+            <div>
+              <label class="block text-xs font-black text-slate-600 mb-2">ملف JSON</label>
+              <input type="file" name="backup_file" accept="application/json" class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold">
+              <p class="mt-2 text-xs font-bold text-slate-500">ملاحظة: لو في بيانات موجودة بالفعل، الاسترجاع ممكن يفشل بسبب التعارض.</p>
+            </div>
+            <button class="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white hover:bg-slate-900 w-fit" type="submit">استرجاع البيانات</button>
+          </form>
+        {% else %}
+          <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-900">
+            الاسترجاع متاح للمشرف فقط.
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

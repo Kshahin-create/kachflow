@@ -1,26 +1,106 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="mb-6 flex items-center justify-between gap-4">
-  <div>
-    <h1 class="text-2xl font-bold">لوحة التحكم العامة</h1>
-    <p class="text-sm text-slate-500">نظرة موحدة على كل المشاريع المصرح لك بها.</p>
-  </div>
-  <a class="rounded-md bg-slate-950 px-4 py-2 text-sm text-white" href="{% url 'project_create' %}">مشروع جديد</a>
-</div>
-<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-  <div class="kpi"><span>إجمالي الكاش</span><strong>{{ metrics.cash_total }}</strong></div>
-  <div class="kpi"><span>الإيرادات</span><strong>{{ metrics.income_total }}</strong></div>
-  <div class="kpi"><span>المصروفات</span><strong>{{ metrics.expense_total }}</strong></div>
-  <div class="kpi"><span>صافي التدفق</span><strong>{{ metrics.net_cashflow }}</strong></div>
-</div>
-<div class="mt-6 grid gap-4 lg:grid-cols-2">
-  <section class="panel">
-    <h2 class="panel-title">آخر ملفات Excel</h2>
-    {% for upload in metrics.recent_uploads %}<div class="row"><span>{{ upload.original_filename }}</span><span>{{ upload.project.name }}</span></div>{% empty %}<div class="empty">لا توجد ملفات بعد.</div>{% endfor %}
+<div class="space-y-6">
+  <section class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Command Center</p>
+        </div>
+        <h1 class="mt-2 text-2xl sm:text-3xl font-black text-slate-950">لوحة التحكم</h1>
+        <p class="mt-1 text-sm font-bold text-slate-500">نظرة موحدة على كل المشاريع المصرح لك بها.</p>
+        {% if current_project %}
+          <p class="mt-3 text-xs font-black text-slate-500">
+            المشروع الحالي: <span class="text-slate-900">{{ current_project.name }}</span>
+          </p>
+        {% endif %}
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {% if request.user.is_staff %}
+          <form method="post" action="{% url 'settings' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_backup">
+            <input type="hidden" name="label" value="Backup من الداشبورد">
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-800 hover:bg-slate-50" type="submit">
+              إنشاء Backup
+            </button>
+          </form>
+          <a class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-800 hover:bg-slate-50" href="{% url 'backups_page' %}">إدارة النسخ</a>
+        {% endif %}
+        <a class="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-900" href="{% url 'project_create' %}">مشروع جديد</a>
+      </div>
+    </div>
   </section>
-  <section class="panel">
-    <h2 class="panel-title">آخر المعاملات</h2>
-    {% for txn in metrics.recent_transactions %}<div class="row"><span>{{ txn.description|default:txn.account.name }}</span><span>{{ txn.amount }}</span></div>{% empty %}<div class="empty">لا توجد معاملات بعد.</div>{% endfor %}
+
+  <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="card stat-card">
+      <i data-lucide="wallet"></i>
+      <span>إجمالي الكاش</span>
+      <strong>{{ metrics.cash_total }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">عدد المشاريع: {{ metrics.projects_count }}</div>
+    </div>
+    <div class="card stat-card">
+      <i data-lucide="trending-up"></i>
+      <span>الإيرادات</span>
+      <strong>{{ metrics.income_total }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">عدد المعاملات: {{ metrics.transactions_count }}</div>
+    </div>
+    <div class="card stat-card">
+      <i data-lucide="trending-down"></i>
+      <span>المصروفات</span>
+      <strong>{{ metrics.expense_total }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">عدد الحسابات: {{ metrics.accounts_count }}</div>
+    </div>
+    <div class="card stat-card">
+      <i data-lucide="activity"></i>
+      <span>صافي التدفق</span>
+      <strong>{{ metrics.net_cashflow }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">آخر تحديث: الآن</div>
+    </div>
+  </section>
+
+  <section class="grid gap-4 lg:grid-cols-2">
+    <div class="panel p-6">
+      <h2 class="panel-title">
+        <i data-lucide="file-spreadsheet" class="h-5 w-5 text-emerald-600"></i>
+        آخر ملفات Excel
+      </h2>
+      <div class="space-y-3">
+        {% for upload in metrics.recent_uploads %}
+          <div class="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 hover:bg-slate-50/40">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-black text-slate-900">{{ upload.original_filename }}</div>
+              <div class="mt-1 text-xs font-bold text-slate-500 truncate">{{ upload.project.name }}</div>
+            </div>
+            <div class="shrink-0 text-xs font-black text-slate-400">{{ upload.uploaded_at|date:"Y-m-d" }}</div>
+          </div>
+        {% empty %}
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm font-black text-slate-500">لا توجد ملفات بعد.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel p-6">
+      <h2 class="panel-title">
+        <i data-lucide="receipt-text" class="h-5 w-5 text-amber-600"></i>
+        آخر المعاملات
+      </h2>
+      <div class="space-y-3">
+        {% for txn in metrics.recent_transactions %}
+          <div class="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 hover:bg-slate-50/40">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-black text-slate-900">{{ txn.description|default:txn.account.name }}</div>
+              <div class="mt-1 text-xs font-bold text-slate-500 truncate">{{ txn.project.name }}</div>
+            </div>
+            <div class="shrink-0 text-sm font-black text-slate-900">{{ txn.amount }}</div>
+          </div>
+        {% empty %}
+          <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm font-black text-slate-500">لا توجد معاملات بعد.</div>
+        {% endfor %}
+      </div>
+    </div>
   </section>
 </div>
 {% endblock %}
