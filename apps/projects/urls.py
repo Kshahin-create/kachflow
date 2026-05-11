@@ -10,6 +10,7 @@ urlpatterns = [
     path("<int:pk>/edit/", views.project_create, name="project_edit"),
     path("<int:pk>/settings/", views.project_detail, name="project_settings"),
     path("<int:pk>/dashboard/", views.project_dashboard, name="project_dashboard"),
+    path("<int:pk>/analytics/", views.project_analytics, name="project_analytics"),
     path("<int:pk>/partner-dashboard/", views.partner_dashboard, name="partner_dashboard"),
     path("<int:pk>/members/", views.project_members, name="project_members"),
     path("<int:pk>/members/<int:member_id>/permissions/", views.member_permissions, name="member_permissions"),

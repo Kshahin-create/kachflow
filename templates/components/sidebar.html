@@ -240,6 +240,10 @@
               <i data-lucide="bar-chart-3" class="sidebar-icon"></i>
               <span class="sidebar-label" x-show="!sidebarCollapsed">تقارير المشروع</span>
             </a>
+            <a href="{% url 'project_analytics' current_project.pk %}" class="sidebar-link {% if active == 'project_analytics' %}is-active{% endif %}" :class="sidebarCollapsed ? 'justify-center' : ''">
+              <i data-lucide="line-chart" class="sidebar-icon"></i>
+              <span class="sidebar-label" x-show="!sidebarCollapsed">تحليلات تفصيلية</span>
+            </a>
           </div>
         </section>
 

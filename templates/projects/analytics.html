@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+{% block title %}تحليلات تفصيلية | {{ project.name }}{% endblock %}
+{% block content %}
+<div class="space-y-8 pb-12" x-data="{tab:'overview', period:'{{ period_ctx.period|default:'month' }}'}">
+  {% if errors %}
+    <div class="rounded-2xl bg-rose-50 border border-rose-100 p-6 flex items-start gap-4">
+      <i data-lucide="alert-circle" class="h-6 w-6 text-rose-600 shrink-0 mt-0.5"></i>
+      <div class="min-w-0">
+        <h3 class="text-sm font-black text-rose-900">حصلت أخطاء أثناء تجهيز التحليلات</h3>
+        <ul class="mt-2 space-y-1 text-xs font-bold text-rose-800/80">
+          {% for e in errors %}
+            <li class="break-words">{{ e }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  <header class="rounded-[2rem] border border-slate-200 bg-white p-6 sm:p-8">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black text-emerald-700 border border-emerald-100 uppercase tracking-widest">Project OS</span>
+          <span class="rounded-full bg-slate-50 px-3 py-1 text-[10px] font-black text-slate-700 border border-slate-200 uppercase tracking-widest">{{ project.get_project_type_display }}</span>
+          <span class="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-black text-amber-800 border border-amber-100 uppercase tracking-widest">{{ period_ctx.label }}</span>
+        </div>
+        <h1 class="mt-3 text-2xl sm:text-3xl font-black text-slate-950 truncate">{{ project.name }}</h1>
+        <p class="mt-1 text-sm font-bold text-slate-500">تحليلات تفصيلية لكل جزء داخل المشروع (مالية + عمليات + تكاملات + بيانات)</p>
+      </div>
+
+      <form method="get" class="w-full lg:w-auto rounded-2xl border border-slate-200 bg-slate-50/50 p-4">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-end">
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">الفترة</label>
+            <select name="period" x-model="period" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
+              <option value="today">اليوم</option>
+              <option value="7d">آخر 7 أيام</option>
+              <option value="14d">آخر 14 يوم</option>
+              <option value="month">شهر</option>
+              <option value="year">سنة</option>
+              <option value="custom">مخصص</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5" x-show="period === 'month'" x-cloak>
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">شهر</label>
+            <input name="month" value="{{ period_ctx.month }}" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="MM">
+          </div>
+
+          <div class="space-y-1.5" x-show="period === 'month' || period === 'year'" x-cloak>
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">سنة</label>
+            <input name="year" value="{{ period_ctx.year }}" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10" placeholder="YYYY">
+          </div>
+
+          <div class="space-y-1.5 sm:col-span-2 lg:col-span-2" x-show="period === 'custom'" x-cloak>
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">من / إلى</label>
+            <div class="grid gap-2 sm:grid-cols-2">
+              <input type="date" name="start" value="{{ period_ctx.start|date:'Y-m-d' }}" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
+              <input type="date" name="end" value="{{ period_ctx.end|date:'Y-m-d' }}" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10">
+            </div>
+          </div>
+
+          <div class="sm:col-span-2 lg:col-span-1">
+            <button class="w-full rounded-xl bg-slate-950 px-6 py-2.5 text-sm font-black text-white hover:bg-slate-900" type="submit">تطبيق</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-2">
+      <button type="button" class="rounded-2xl px-4 py-2 text-xs font-black border {% if true %}{% endif %}" :class="tab==='overview' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'" @click="tab='overview'">نظرة عامة</button>
+      <button type="button" class="rounded-2xl px-4 py-2 text-xs font-black border" :class="tab==='finance' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'" @click="tab='finance'">الماليات</button>
+      <button type="button" class="rounded-2xl px-4 py-2 text-xs font-black border" :class="tab==='module' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'" @click="tab='module'">تفاصيل المشروع</button>
+      <button type="button" class="rounded-2xl px-4 py-2 text-xs font-black border" :class="tab==='data' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'" @click="tab='data'">البيانات</button>
+      <button type="button" class="rounded-2xl px-4 py-2 text-xs font-black border" :class="tab==='integrations' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'" @click="tab='integrations'">التكاملات</button>
+      <button type="button" class="rounded-2xl px-4 py-2 text-xs font-black border" :class="tab==='audit' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'" @click="tab='audit'">النشاط</button>
+    </div>
+  </header>
+
+  <section x-show="tab==='overview'" x-cloak class="space-y-6">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="card stat-card">
+        <i data-lucide="trending-up"></i>
+        <span>إجمالي الدخل</span>
+        <strong>{{ finance.income_total|default:0|numfmt:2 }}</strong>
+        {% if finance.compare.income_pct is not None %}
+          <div class="mt-3 text-xs font-black {% if finance.compare.income_pct >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ finance.compare.income_pct }}% مقارنة بالسابق</div>
+        {% endif %}
+      </div>
+      <div class="card stat-card">
+        <i data-lucide="trending-down"></i>
+        <span>إجمالي المصروف</span>
+        <strong>{{ finance.expense_total|default:0|numfmt:2 }}</strong>
+        {% if finance.compare.expense_pct is not None %}
+          <div class="mt-3 text-xs font-black {% if finance.compare.expense_pct <= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ finance.compare.expense_pct }}% مقارنة بالسابق</div>
+        {% endif %}
+      </div>
+      <div class="card stat-card">
+        <i data-lucide="activity"></i>
+        <span>صافي الربح</span>
+        <strong>{{ finance.net_total|default:0|numfmt:2 }}</strong>
+        {% if finance.compare.net_pct is not None %}
+          <div class="mt-3 text-xs font-black {% if finance.compare.net_pct >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ finance.compare.net_pct }}% مقارنة بالسابق</div>
+        {% endif %}
+      </div>
+      <div class="card stat-card">
+        <i data-lucide="receipt-text"></i>
+        <span>عدد المعاملات</span>
+        <strong>{{ finance.count|default:0|numfmt:0 }}</strong>
+        {% if finance.compare.count_pct is not None %}
+          <div class="mt-3 text-xs font-black {% if finance.compare.count_pct >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">{{ finance.compare.count_pct }}% مقارنة بالسابق</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-12">
+      <div class="lg:col-span-8 bg-white rounded-[2rem] p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-lg font-black text-slate-950">حركة الدخل/المصروف</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">{{ period_ctx.start }} → {{ period_ctx.end }}</p>
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Finance Daily</span>
+        </div>
+        <div class="h-[320px] w-full">
+          <canvas id="financeDailyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="lg:col-span-4 space-y-4">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-black text-slate-950">الملفات والاستيراد</h3>
+            <i data-lucide="file-up" class="h-4 w-4 text-slate-400"></i>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+              <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Uploads</div>
+              <div class="mt-1 text-lg font-black text-slate-900">{{ data_ops.uploads_count|default:0|numfmt:0 }}</div>
+            </div>
+            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+              <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Batches</div>
+              <div class="mt-1 text-lg font-black text-slate-900">{{ data_ops.batches_count|default:0|numfmt:0 }}</div>
+            </div>
+            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+              <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">Rows</div>
+              <div class="mt-1 text-lg font-black text-slate-900">{{ data_ops.rows_count|default:0|numfmt:0 }}</div>
+            </div>
+            <div class="rounded-2xl bg-rose-50 border border-rose-100 p-4">
+              <div class="text-[10px] font-black uppercase tracking-widest text-rose-700/70">Errors</div>
+              <div class="mt-1 text-lg font-black text-rose-700">{{ data_ops.errors_count|default:0|numfmt:0 }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-white p-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-black text-slate-950">التقارير</h3>
+            <i data-lucide="file-text" class="h-4 w-4 text-slate-400"></i>
+          </div>
+          <div class="mt-4 text-2xl font-black text-slate-900">{{ reports.count|default:0|numfmt:0 }}</div>
+          <div class="mt-1 text-xs font-bold text-slate-500">تقارير تم توليدها خلال الفترة</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section x-show="tab==='finance'" x-cloak class="space-y-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-lg font-black text-slate-950">أحدث المعاملات</h2>
+          <i data-lucide="clock" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for t in finance.recent %}
+            <div class="p-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="text-sm font-black text-slate-900 truncate">{{ t.description|default:t.account.name }}</div>
+                <div class="mt-1 text-xs font-bold text-slate-500">{{ t.date }} • {{ t.category.name|default:"غير مصنف" }}</div>
+              </div>
+              <div class="shrink-0 text-right">
+                <div class="text-sm font-black text-slate-900">{{ t.amount_base_currency|numfmt:2 }}</div>
+                <div class="mt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">{{ t.transaction_type }}</div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا توجد معاملات خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 class="text-lg font-black text-slate-950">حسب التصنيف</h2>
+          <i data-lucide="layers" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for row in finance.by_category %}
+            <div class="p-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="text-sm font-black text-slate-900 truncate">{{ row.name }}</div>
+                <div class="mt-1 text-xs font-bold text-slate-500">{{ row.type }}</div>
+              </div>
+              <div class="shrink-0 text-sm font-black text-slate-900">{{ row.amount|numfmt:2 }}</div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا توجد بيانات تصنيفات خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section x-show="tab==='module'" x-cloak class="space-y-6">
+    <div class="rounded-[2rem] border border-slate-200 bg-white p-6 sm:p-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-black text-slate-950">تفاصيل حسب نوع المشروع</h2>
+          <p class="mt-1 text-sm font-bold text-slate-500">الصفحة بتعرض التفاصيل اللي تناسب نوع المشروع الحالي</p>
+        </div>
+        <span class="rounded-full bg-slate-900 text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest">{{ module.type }}</span>
+      </div>
+
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {% for k,v in module.kpis.items %}
+          {% if k != 'compare' %}
+            <div class="rounded-3xl border border-slate-200 bg-slate-50/40 p-5">
+              <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">{{ k }}</div>
+              <div class="mt-1 text-xl font-black text-slate-950">{{ v|default:0|numfmt }}</div>
+            </div>
+          {% endif %}
+        {% empty %}
+          <div class="rounded-3xl border border-slate-200 bg-slate-50/40 p-6 text-sm font-black text-slate-500">لا توجد KPIs خاصة لهذا النوع بعد</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if module.type == 'ecommerce' %}
+      <div class="grid gap-6 lg:grid-cols-2">
+        <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+          <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-black text-slate-950">أحدث الطلبات</h3>
+            <i data-lucide="shopping-bag" class="h-4 w-4 text-slate-400"></i>
+          </div>
+          <div class="divide-y divide-slate-100">
+            {% for o in module.tables.recent_orders %}
+              <div class="p-5 flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="text-sm font-black text-slate-900 truncate">#{{ o.order_number }} • {{ o.customer.name|default:"عميل غير معروف" }}</div>
+                  <div class="mt-1 text-xs font-bold text-slate-500">{{ o.order_date }} • {{ o.status }}</div>
+                </div>
+                <div class="shrink-0 text-sm font-black text-slate-900">{{ o.net_total|numfmt:2 }} {{ o.currency }}</div>
+              </div>
+            {% empty %}
+              <div class="p-10 text-center text-sm font-black text-slate-500">لا توجد طلبات خلال الفترة</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+          <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-black text-slate-950">Top 10</h3>
+            <i data-lucide="sparkles" class="h-4 w-4 text-slate-400"></i>
+          </div>
+          <div class="p-6 space-y-6">
+            <div>
+              <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">المنتجات</div>
+              <div class="mt-3 space-y-2">
+                {% for p in module.tables.top_products %}
+                  <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <div class="min-w-0 text-sm font-black text-slate-900 truncate">{{ p.product_name|default:p.name }}</div>
+                    <div class="shrink-0 text-xs font-black text-slate-700">{{ p.revenue|default:p.stock_quantity|numfmt }}</div>
+                  </div>
+                {% empty %}
+                  <div class="text-sm font-black text-slate-500">لا توجد بيانات</div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[10px] font-black uppercase tracking-widest text-slate-500">العملاء</div>
+              <div class="mt-3 space-y-2">
+                {% for c in module.tables.top_customers %}
+                  <div class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <div class="min-w-0 text-sm font-black text-slate-900 truncate">{{ c.customer__name }}</div>
+                    <div class="shrink-0 text-xs font-black text-slate-700">{{ c.total|numfmt:2 }}</div>
+                  </div>
+                {% empty %}
+                  <div class="text-sm font-black text-slate-500">لا توجد بيانات</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <section x-show="tab==='data'" x-cloak class="space-y-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-950">آخر ملفات الاستيراد</h3>
+          <i data-lucide="file-spreadsheet" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for f in data_ops.recent_uploads %}
+            <div class="p-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="text-sm font-black text-slate-900 truncate">{{ f.original_filename }}</div>
+                <div class="mt-1 text-xs font-bold text-slate-500">{{ f.uploaded_at|date:"Y-m-d H:i" }} • {{ f.status }}</div>
+              </div>
+              <div class="shrink-0 text-xs font-black text-slate-700">{{ f.file_size|default:0|numfmt:0 }} B</div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا يوجد Uploads خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-950">أخطاء الاستيراد</h3>
+          <i data-lucide="triangle-alert" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for e in data_ops.recent_errors %}
+            <div class="p-5">
+              <div class="text-sm font-black text-slate-900">{{ e.error_message }}</div>
+              <div class="mt-1 text-xs font-bold text-slate-500">Row {{ e.row_number }} • {{ e.created_at|date:"Y-m-d H:i" }}</div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا توجد أخطاء خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section x-show="tab==='integrations'" x-cloak class="space-y-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-950">اتصالات API</h3>
+          <i data-lucide="plug" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for c in integrations.connections %}
+            <div class="p-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="text-sm font-black text-slate-900 truncate">{{ c.name }} • {{ c.provider }}</div>
+                <div class="mt-1 text-xs font-bold text-slate-500">Status: {{ c.status }} • Last sync: {{ c.last_sync_at|default:"-" }}</div>
+              </div>
+              <div class="shrink-0 text-xs font-black text-slate-700">{{ c.created_at|date:"Y-m-d" }}</div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا توجد اتصالات</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-950">آخر مزامنات</h3>
+          <i data-lucide="refresh-cw" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for s in integrations.sync_logs %}
+            <div class="p-5 flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="text-sm font-black text-slate-900 truncate">{{ s.status }}</div>
+                <div class="mt-1 text-xs font-bold text-slate-500">{{ s.started_at|date:"Y-m-d H:i" }} • fetched {{ s.records_fetched|default:0|numfmt:0 }}</div>
+              </div>
+              <div class="shrink-0 text-xs font-black text-slate-700">{{ s.records_created|default:0|numfmt:0 }}/{{ s.records_updated|default:0|numfmt:0 }}</div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا توجد Sync Logs خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section x-show="tab==='audit'" x-cloak class="space-y-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-950">أكثر الأنشطة</h3>
+          <i data-lucide="activity" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for a in audit.by_action %}
+            <div class="p-5 flex items-center justify-between">
+              <div class="text-sm font-black text-slate-900">{{ a.action }}</div>
+              <div class="text-sm font-black text-slate-700">{{ a.count|numfmt:0 }}</div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا يوجد نشاط خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-lg font-black text-slate-950">سجل النشاط</h3>
+          <i data-lucide="history" class="h-4 w-4 text-slate-400"></i>
+        </div>
+        <div class="divide-y divide-slate-100">
+          {% for l in audit.recent %}
+            <div class="p-5">
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                  <div class="text-sm font-black text-slate-900 truncate">{{ l.action }}</div>
+                  <div class="mt-1 text-xs font-bold text-slate-500">{{ l.description|default:"" }}</div>
+                </div>
+                <div class="shrink-0 text-xs font-black text-slate-500">{{ l.created_at|date:"Y-m-d H:i" }}</div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="p-10 text-center text-sm font-black text-slate-500">لا يوجد Logs خلال الفترة</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  (function() {
+    const payload = JSON.parse('{{ chart_payload|escapejs }}');
+    const el = document.getElementById('financeDailyChart');
+    if (!el || !window.Chart) return;
+    const ctx = el.getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: payload.financeDaily.labels,
+        datasets: [
+          {
+            label: 'الدخل',
+            data: payload.financeDaily.income,
+            borderColor: '#10b981',
+            borderWidth: 3,
+            tension: 0.35,
+            pointRadius: 0
+          },
+          {
+            label: 'المصروف',
+            data: payload.financeDaily.expense,
+            borderColor: '#f43f5e',
+            borderWidth: 3,
+            tension: 0.35,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true }
+        },
+        scales: {
+          y: { beginAtZero: true },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  })();
+</script>
+{% endblock %}
