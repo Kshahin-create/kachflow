@@ -17,6 +17,8 @@ class UploadedFile(models.Model):
     file_size = models.PositiveBigIntegerField(default=0)
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.UPLOADED)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.original_filename
@@ -30,6 +32,7 @@ class WorkbookSheet(models.Model):
     detected_columns = models.JSONField(default=list, blank=True)
     preview_data = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         unique_together = ("uploaded_file", "sheet_name")
@@ -44,6 +47,8 @@ class SheetColumn(models.Model):
     detected_type = models.CharField(max_length=40, default="text")
     sample_values = models.JSONField(default=list, blank=True)
     position = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ImportTemplate(models.Model):
@@ -83,6 +88,7 @@ class ImportMapping(models.Model):
     default_value = models.CharField(max_length=255, blank=True)
     transformation_rule = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ImportBatch(models.Model):
@@ -104,6 +110,7 @@ class ImportBatch(models.Model):
     finished_at = models.DateTimeField(blank=True, null=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ImportError(models.Model):
@@ -113,6 +120,7 @@ class ImportError(models.Model):
     error_message = models.TextField()
     raw_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class RawImportedRow(models.Model):
@@ -132,3 +140,4 @@ class RawImportedRow(models.Model):
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.IMPORTED)
     error_message = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)

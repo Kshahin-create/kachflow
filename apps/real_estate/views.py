@@ -535,46 +535,11 @@ def dashboard_page(request):
     return render(request, "real_estate/dashboard.html", context)
 
 def _resolve_period(request):
-    today = timezone.localdate()
-    period = (request.GET.get("period") or "month").strip()
-    year = (request.GET.get("year") or "").strip()
-    month = (request.GET.get("month") or "").strip()
-    start_raw = (request.GET.get("start") or "").strip()
-    end_raw = (request.GET.get("end") or "").strip()
+    from common.utils import resolve_period
 
-    def _safe_int(value, default):
-        try:
-            return int(value)
-        except Exception:
-            return default
-
-    if period == "today":
-        start_date = end_date = today
-    elif period == "year":
-        y = _safe_int(year, today.year)
-        start_date = date(y, 1, 1)
-        end_date = date(y, 12, 31)
-    elif period == "month":
-        y = _safe_int(year, today.year)
-        m = _safe_int(month, today.month)
-        m = min(max(m, 1), 12)
-        start_date = date(y, m, 1)
-        end_date = (date(y + 1, 1, 1) - timedelta(days=1)) if m == 12 else (date(y, m + 1, 1) - timedelta(days=1))
-    elif period == "custom":
-        try:
-            start_date = date.fromisoformat(start_raw) if start_raw else today.replace(day=1)
-        except Exception:
-            start_date = today.replace(day=1)
-        try:
-            end_date = date.fromisoformat(end_raw) if end_raw else today
-        except Exception:
-            end_date = today
-        if end_date < start_date:
-            start_date, end_date = end_date, start_date
-    else:
-        period = "month"
-        start_date = today.replace(day=1)
-        end_date = today
+    ctx = resolve_period(request, default="month")
+    start_date = ctx["start"]
+    end_date = ctx["end"]
 
     naive_start = datetime.combine(start_date, time.min)
     naive_end = datetime.combine(end_date + timedelta(days=1), time.min)
@@ -586,9 +551,9 @@ def _resolve_period(request):
         end_dt = naive_end
 
     return {
-        "period": period,
-        "year": _safe_int(year, today.year),
-        "month": _safe_int(month, today.month),
+        "period": ctx["period"],
+        "year": ctx["year"],
+        "month": ctx["month"],
         "start_date": start_date,
         "end_date": end_date,
         "start_dt": start_dt,

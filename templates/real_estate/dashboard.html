@@ -109,7 +109,7 @@
       <div class="relative mt-8">
         <span class="text-xs font-black text-slate-400 uppercase tracking-widest">الإيراد المتوقع</span>
         <div class="flex items-baseline gap-1 mt-1">
-          <h3 class="text-3xl font-black text-slate-950 truncate">{{ totals.expected_rent|floatformat:0 }}</h3>
+          <h3 class="text-3xl font-black text-slate-950 truncate">{{ totals.expected_rent|numfmt }}</h3>
           <span class="text-xs font-bold text-slate-400">ريال</span>
         </div>
         <div class="mt-4 flex items-center gap-2">
@@ -137,13 +137,13 @@
       <div class="relative mt-8">
         <span class="text-xs font-black text-slate-400 uppercase tracking-widest">التحصيل الفعلي</span>
         <div class="flex items-baseline gap-1 mt-1">
-          <h3 class="text-3xl font-black text-slate-950 truncate">{{ totals.paid_total|floatformat:0 }}</h3>
+          <h3 class="text-3xl font-black text-slate-950 truncate">{{ totals.paid_total|numfmt }}</h3>
           <span class="text-xs font-bold text-slate-400">ريال</span>
         </div>
         <div class="mt-4">
           <div class="flex items-center justify-between text-[10px] font-bold mb-1">
             <span class="text-slate-400">متبقي تحصيله</span>
-            <span class="text-rose-600">{{ totals.remaining_total|floatformat:0 }} ريال</span>
+            <span class="text-rose-600">{{ totals.remaining_total|numfmt }} ريال</span>
           </div>
           <div class="w-full h-1 bg-slate-100 rounded-full">
             <div class="h-full bg-rose-500 rounded-full" style="width: {{ collection_rate }}%"></div>

@@ -22,6 +22,7 @@ class Customer(models.Model):
     total_spent = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     raw_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -41,6 +42,7 @@ class PromoCode(models.Model):
     is_archived = models.BooleanField(default=False)
     raw_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.code
@@ -56,6 +58,7 @@ class ProductCollection(models.Model):
     image_url = models.URLField(max_length=500, blank=True)
     raw_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -82,6 +85,7 @@ class Product(models.Model):
     variants_json = models.JSONField(default=list, blank=True)
     raw_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     @property
     def profit_margin(self):
@@ -122,6 +126,7 @@ class Order(models.Model):
     import_batch = models.ForeignKey("imports.ImportBatch", on_delete=models.SET_NULL, blank=True, null=True)
     raw_data = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class OrderItem(models.Model):
@@ -133,6 +138,8 @@ class OrderItem(models.Model):
     total_price = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     cost_price = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     profit = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Refund(models.Model):
@@ -140,6 +147,8 @@ class Refund(models.Model):
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     reason = models.TextField(blank=True)
     date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class ShippingCost(models.Model):
@@ -147,3 +156,5 @@ class ShippingCost(models.Model):
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     provider = models.CharField(max_length=120, blank=True)
     date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)

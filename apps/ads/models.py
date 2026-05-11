@@ -8,6 +8,7 @@ class AdAccount(models.Model):
     account_id = models.CharField(max_length=120, blank=True)
     currency = models.CharField(max_length=8, default="SAR")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Campaign(models.Model):
@@ -17,6 +18,7 @@ class Campaign(models.Model):
     objective = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=40, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class AdSet(models.Model):
@@ -24,6 +26,8 @@ class AdSet(models.Model):
     name = models.CharField(max_length=180)
     adset_id = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=40, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Ad(models.Model):
@@ -31,6 +35,8 @@ class Ad(models.Model):
     name = models.CharField(max_length=180)
     ad_id = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=40, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class AdSpendDaily(models.Model):
@@ -47,6 +53,8 @@ class AdSpendDaily(models.Model):
     currency = models.CharField(max_length=8, default="SAR")
     source = models.CharField(max_length=80, default="manual")
     import_batch = models.ForeignKey("imports.ImportBatch", on_delete=models.SET_NULL, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class AdPerformanceMetric(models.Model):
@@ -62,3 +70,5 @@ class AdPerformanceMetric(models.Model):
     ctr = models.DecimalField(max_digits=12, decimal_places=4, default=0)
     cpc = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     cpm = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)

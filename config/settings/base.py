@@ -43,6 +43,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "common.mixins.TimezoneFromUserMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -56,7 +57,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
-        "OPTIONS": {"context_processors": [
+        "OPTIONS": {"builtins": ["apps.imports.templatetags.import_extras"], "context_processors": [
             "django.template.context_processors.debug",
             "django.template.context_processors.request",
             "django.contrib.auth.context_processors.auth",
@@ -142,6 +143,16 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@mnicity.com")
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/1")
+
+if os.getenv("BACKUP_AUTO_ENABLED", "False").lower() == "true":
+    from celery.schedules import crontab
+    CELERY_BEAT_SCHEDULE = {
+        "daily-db-backup": {
+            "task": "apps.audit.tasks.create_backup_task",
+            "schedule": crontab(hour=int(os.getenv("BACKUP_AUTO_HOUR", "3")), minute=int(os.getenv("BACKUP_AUTO_MINUTE", "0"))),
+            "args": (os.getenv("BACKUP_AUTO_LABEL", "نسخة احتياطية تلقائية"),),
+        }
+    }
 
 JAZZMIN_SETTINGS = {
     "site_title": "KashFlow Admin",

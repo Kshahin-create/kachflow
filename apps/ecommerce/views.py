@@ -4,15 +4,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from rest_framework import viewsets, decorators, response
+from datetime import timedelta
 from apps.accounts.selectors import get_user_projects
 from apps.dashboards.services import get_ecommerce_metrics
 from apps.ecommerce.models import Customer, Order, Product, ProductCollection, PromoCode
 from apps.ecommerce.serializers import CustomerSerializer, OrderSerializer, ProductSerializer
 from apps.integrations.models import ApiConnection, RawApiEvent
+from common.utils import resolve_period, get_project_version, get_user_version
 from apps.integrations.wuilt import (
     DEFAULT_GRAPHQL_ENDPOINT,
     WUILT_PROVIDER,
@@ -69,28 +73,74 @@ def dashboard(request):
         return redirect("project_select")
     
     from django.db.models import Sum, Count, Q, Avg
-    from datetime import timedelta
     from django.utils import timezone
+
+    period_ctx = resolve_period(request, default="14d")
     
     # Basic Stats
-    orders = Order.objects.filter(project=project)
-    stats = orders.aggregate(
-        total_sales=Sum("net_total", filter=Q(status__in=["SUCCESSFUL", "PAID", "COMPLETED", "successful", "paid"])),
-        total_orders=Count("id"),
-        abandoned_count=Count("id", filter=Q(is_abandoned=True)),
-        customers_count=Count("customer", distinct=True),
-        avg_order_value=Avg("net_total", filter=Q(status__in=["SUCCESSFUL", "PAID", "COMPLETED", "successful", "paid"]))
-    )
+    error_message = ""
+    paid_statuses = ["SUCCESSFUL", "PAID", "COMPLETED", "successful", "paid"]
+    user_ver = get_user_version(request.user)
+    project_ver = get_project_version(project.pk)
+    cache_key = f"ecom:dash:{request.user.pk}:{project.pk}:{period_ctx['start']}:{period_ctx['end']}:{user_ver}:{project_ver}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return render(request, "ecommerce/dashboard.html", cached)
+
+    orders = Order.objects.filter(project=project, order_date__range=[period_ctx["start"], period_ctx["end"]])
+    try:
+        stats = orders.aggregate(
+            total_sales=Sum("net_total", filter=Q(status__in=paid_statuses)),
+            total_orders=Count("id"),
+            abandoned_count=Count("id", filter=Q(is_abandoned=True)),
+            customers_count=Count("customer", distinct=True),
+            avg_order_value=Avg("net_total", filter=Q(status__in=paid_statuses)),
+        )
+    except Exception as exc:
+        error_message = f"فشل حساب إحصائيات المتجر: {exc}"
+        stats = {"total_sales": 0, "total_orders": 0, "abandoned_count": 0, "customers_count": 0, "avg_order_value": 0}
+
+    prev_orders = Order.objects.filter(project=project, order_date__range=[period_ctx["prev_start"], period_ctx["prev_end"]])
+    try:
+        prev_stats = prev_orders.aggregate(
+            total_sales=Sum("net_total", filter=Q(status__in=paid_statuses)),
+            total_orders=Count("id"),
+            abandoned_count=Count("id", filter=Q(is_abandoned=True)),
+            customers_count=Count("customer", distinct=True),
+            avg_order_value=Avg("net_total", filter=Q(status__in=paid_statuses)),
+        )
+    except Exception:
+        prev_stats = {"total_sales": 0, "total_orders": 0, "abandoned_count": 0, "customers_count": 0, "avg_order_value": 0}
+
+    def _pct_change(curr, prev):
+        try:
+            c = float(curr or 0)
+            p = float(prev or 0)
+            if p == 0:
+                return None
+            return round(((c - p) / p) * 100, 1)
+        except Exception:
+            return None
+
+    compare = {
+        "sales_pct": _pct_change(stats.get("total_sales"), prev_stats.get("total_sales")),
+        "orders_pct": _pct_change(stats.get("total_orders"), prev_stats.get("total_orders")),
+        "aov_pct": _pct_change(stats.get("avg_order_value"), prev_stats.get("avg_order_value")),
+        "abandoned_pct": _pct_change(stats.get("abandoned_count"), prev_stats.get("abandoned_count")),
+    }
     
-    # Sales Chart Data (Last 14 days)
-    thirty_days_ago = timezone.now().date() - timedelta(days=14)
-    sales_data = orders.filter(
-        order_date__gte=thirty_days_ago,
-        status__in=["SUCCESSFUL", "PAID", "COMPLETED", "successful", "paid"]
-    ).values("order_date").annotate(
-        daily_total=Sum("net_total"),
-        daily_count=Count("id")
-    ).order_by("order_date")
+    # Sales Chart Data (by selected period)
+    sales_data = []
+    try:
+        sales_data = (
+            orders.filter(status__in=paid_statuses)
+            .values("order_date")
+            .annotate(daily_total=Sum("net_total"), daily_count=Count("id"))
+            .order_by("order_date")
+        )
+    except Exception as exc:
+        if not error_message:
+            error_message = f"فشل تجهيز بيانات الرسم البياني: {exc}"
 
     # Format chart labels and values
     chart_labels = []
@@ -98,32 +148,38 @@ def dashboard(request):
     chart_counts = []
     
     try:
-        # Fill gaps for days with no sales
-        curr_date = thirty_days_ago
+        curr_date = period_ctx["start"]
         sales_dict = {item["order_date"]: item for item in sales_data}
-        while curr_date <= timezone.now().date():
+        while curr_date <= period_ctx["end"]:
             chart_labels.append(curr_date.strftime("%m/%d"))
             item = sales_dict.get(curr_date)
             chart_sales.append(float(item["daily_total"]) if item and item["daily_total"] else 0)
-            chart_counts.append(item["daily_count"] if item else 0)
+            chart_counts.append(int(item["daily_count"]) if item and item["daily_count"] else 0)
             curr_date += timedelta(days=1)
-    except Exception as e:
-        print(f"Chart data error: {e}")
+    except Exception as exc:
+        if not error_message:
+            error_message = f"فشل تجهيز الرسم البياني: {exc}"
     
     # Recent Activity
-    recent_orders = orders.order_by("-created_at")[:5]
+    recent_orders = orders.order_by("-order_date", "-created_at")[:5]
     top_products = Product.objects.filter(project=project).order_by("-stock_quantity")[:5]
     
-    return render(request, "ecommerce/dashboard.html", {
+    context = {
         "project": project,
         "load_charts": True,
+        "period_ctx": period_ctx,
+        "error_message": error_message,
         "stats": stats,
+        "prev_stats": prev_stats,
+        "compare": compare,
         "recent_orders": recent_orders,
         "top_products": top_products,
-        "chart_labels": chart_labels,
-        "chart_sales": chart_sales,
-        "chart_counts": chart_counts,
-    })
+        "chart_labels": json.dumps(chart_labels),
+        "chart_sales": json.dumps(chart_sales),
+        "chart_counts": json.dumps(chart_counts),
+    }
+    cache.set(cache_key, context, 30)
+    return render(request, "ecommerce/dashboard.html", context)
 
 
 @login_required
@@ -142,8 +198,18 @@ def orders_page(request):
         return redirect("ecommerce_orders")
 
     abandoned = request.GET.get("abandoned") == "1"
-    orders = Order.objects.filter(project=project, is_abandoned=abandoned).select_related("customer").order_by("-order_date", "-created_at") if project else Order.objects.none()
-    return render(request, "ecommerce/orders.html", {"project": project, "orders": orders[:100], "is_abandoned_view": abandoned})
+    orders_qs = Order.objects.filter(project=project, is_abandoned=abandoned).select_related("customer").order_by("-order_date", "-created_at") if project else Order.objects.none()
+    paginator = Paginator(orders_qs, 50)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    qs = request.GET.copy()
+    qs.pop("page", None)
+    return render(request, "ecommerce/orders.html", {
+        "project": project,
+        "orders": page_obj.object_list,
+        "page_obj": page_obj,
+        "qs": qs.urlencode(),
+        "is_abandoned_view": abandoned,
+    })
 
 
 @login_required
@@ -171,8 +237,12 @@ def products_page(request):
                 messages.error(request, f"فشلت المزامنة: {exc}")
         return redirect("ecommerce_products")
 
-    products = Product.objects.filter(project=project).order_by("-created_at") if project else Product.objects.none()
-    return render(request, "ecommerce/products.html", {"project": project, "products": products})
+    products_qs = Product.objects.filter(project=project).order_by("-created_at") if project else Product.objects.none()
+    paginator = Paginator(products_qs, 50)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    qs = request.GET.copy()
+    qs.pop("page", None)
+    return render(request, "ecommerce/products.html", {"project": project, "products": page_obj.object_list, "page_obj": page_obj, "qs": qs.urlencode()})
 
 
 @login_required
@@ -189,8 +259,12 @@ def product_detail(request, product_id):
 @login_required
 def customers_page(request):
     project = _selected_project(request)
-    customers = Customer.objects.filter(project=project).order_by("-created_at") if project else Customer.objects.none()
-    return render(request, "ecommerce/customers.html", {"project": project, "customers": customers})
+    customers_qs = Customer.objects.filter(project=project).order_by("-created_at") if project else Customer.objects.none()
+    paginator = Paginator(customers_qs, 50)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    qs = request.GET.copy()
+    qs.pop("page", None)
+    return render(request, "ecommerce/customers.html", {"project": project, "customers": page_obj.object_list, "page_obj": page_obj, "qs": qs.urlencode()})
 
 
 @login_required

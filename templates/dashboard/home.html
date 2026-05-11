@@ -38,25 +38,25 @@
     <div class="card stat-card">
       <i data-lucide="wallet"></i>
       <span>إجمالي الكاش</span>
-      <strong>{{ metrics.cash_total }}</strong>
-      <div class="mt-3 text-xs font-bold text-slate-500">عدد المشاريع: {{ metrics.projects_count }}</div>
+      <strong>{{ metrics.cash_total|numfmt }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">عدد المشاريع: {{ metrics.projects_count|numfmt:0 }}</div>
     </div>
     <div class="card stat-card">
       <i data-lucide="trending-up"></i>
       <span>الإيرادات</span>
-      <strong>{{ metrics.income_total }}</strong>
-      <div class="mt-3 text-xs font-bold text-slate-500">عدد المعاملات: {{ metrics.transactions_count }}</div>
+      <strong>{{ metrics.income_total|numfmt }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">عدد المعاملات: {{ metrics.transactions_count|numfmt:0 }}</div>
     </div>
     <div class="card stat-card">
       <i data-lucide="trending-down"></i>
       <span>المصروفات</span>
-      <strong>{{ metrics.expense_total }}</strong>
-      <div class="mt-3 text-xs font-bold text-slate-500">عدد الحسابات: {{ metrics.accounts_count }}</div>
+      <strong>{{ metrics.expense_total|numfmt }}</strong>
+      <div class="mt-3 text-xs font-bold text-slate-500">عدد الحسابات: {{ metrics.accounts_count|numfmt:0 }}</div>
     </div>
     <div class="card stat-card">
       <i data-lucide="activity"></i>
       <span>صافي التدفق</span>
-      <strong>{{ metrics.net_cashflow }}</strong>
+      <strong>{{ metrics.net_cashflow|numfmt }}</strong>
       <div class="mt-3 text-xs font-bold text-slate-500">آخر تحديث: الآن</div>
     </div>
   </section>

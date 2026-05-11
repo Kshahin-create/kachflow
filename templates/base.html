@@ -54,8 +54,20 @@
               {% if messages %}
                 <div class="mb-6 space-y-2">
                   {% for message in messages %}
-                    <div class="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-emerald-800 shadow-sm backdrop-blur-md">
-                      <i data-lucide="check-circle" class="h-5 w-5 text-emerald-600"></i>
+                    <div class="flex items-center gap-3 rounded-xl border px-4 py-3 shadow-sm backdrop-blur-md
+                      {% if message.tags == 'success' %}border-emerald-100 bg-emerald-50/50 text-emerald-800
+                      {% elif message.tags == 'error' %}border-rose-100 bg-rose-50/50 text-rose-800
+                      {% elif message.tags == 'warning' %}border-amber-100 bg-amber-50/50 text-amber-900
+                      {% else %}border-slate-200 bg-white/70 text-slate-800{% endif %}">
+                      {% if message.tags == 'success' %}
+                        <i data-lucide="check-circle" class="h-5 w-5 text-emerald-600"></i>
+                      {% elif message.tags == 'error' %}
+                        <i data-lucide="alert-circle" class="h-5 w-5 text-rose-600"></i>
+                      {% elif message.tags == 'warning' %}
+                        <i data-lucide="triangle-alert" class="h-5 w-5 text-amber-600"></i>
+                      {% else %}
+                        <i data-lucide="info" class="h-5 w-5 text-slate-500"></i>
+                      {% endif %}
                       <span class="font-bold">{{ message }}</span>
                     </div>
                   {% endfor %}

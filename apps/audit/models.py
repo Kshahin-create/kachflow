@@ -13,6 +13,7 @@ class AuditLog(models.Model):
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     user_agent = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -25,6 +26,7 @@ class DatabaseBackup(models.Model):
     size_bytes = models.PositiveBigIntegerField(default=0)
     payload_gzip = models.BinaryField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         ordering = ["-created_at"]

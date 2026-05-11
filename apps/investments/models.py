@@ -21,6 +21,8 @@ class Asset(models.Model):
     income_generated = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     acquisition_date = models.DateField(blank=True, null=True)
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class InvestmentTransaction(models.Model):
@@ -30,6 +32,8 @@ class InvestmentTransaction(models.Model):
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     currency = models.CharField(max_length=8, default="SAR")
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class InvestmentIncome(models.Model):
@@ -39,3 +43,5 @@ class InvestmentIncome(models.Model):
     currency = models.CharField(max_length=8, default="SAR")
     income_type = models.CharField(max_length=80, blank=True)
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)

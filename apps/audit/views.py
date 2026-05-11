@@ -15,6 +15,7 @@ import tempfile
 from apps.accounts.selectors import get_user_projects
 from apps.audit.models import AuditLog, DatabaseBackup
 from apps.audit.serializers import AuditLogSerializer
+from apps.audit.services import create_database_backup
 
 
 class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
@@ -47,25 +48,7 @@ def settings_page(request):
             label = (request.POST.get("label") or "").strip()
             if not label:
                 label = "نسخة احتياطية"
-            out = io.StringIO()
-            call_command(
-                "dumpdata",
-                stdout=out,
-                use_natural_foreign_keys=True,
-                use_natural_primary_keys=True,
-                exclude=["contenttypes", "auth.permission"],
-                indent=2,
-            )
-            raw = out.getvalue().encode("utf-8")
-            gz = gzip.compress(raw, compresslevel=9)
-            sha = hashlib.sha256(raw).hexdigest()
-            DatabaseBackup.objects.create(
-                created_by=request.user,
-                label=label,
-                sha256=sha,
-                size_bytes=len(raw),
-                payload_gzip=gz,
-            )
+            create_database_backup(created_by=request.user, label=label)
             messages.success(request, "تم إنشاء نسخة احتياطية بنجاح.")
             next_url = (request.POST.get("next") or "").strip()
             if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):

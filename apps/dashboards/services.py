@@ -5,6 +5,7 @@ from apps.finance.models import Account, Transaction
 from apps.imports.models import UploadedFile
 from apps.projects.models import Project
 from apps.accounts.models import ProjectStakeholder
+from common.utils import get_project_version, get_user_version
 
 
 def _money(value):
@@ -14,7 +15,9 @@ def _money(value):
 def get_finance_metrics(user, project_id=None):
     cache_key = None
     if user and getattr(user, "is_authenticated", False):
-        cache_key = f"dash:finance:{user.pk}:{project_id or 'all'}"
+        user_ver = get_user_version(user)
+        proj_ver = get_project_version(project_id) if project_id else 0
+        cache_key = f"dash:finance:{user.pk}:{project_id or 'all'}:{user_ver}:{proj_ver}"
         cached = cache.get(cache_key)
         if cached is not None:
             return cached
@@ -35,13 +38,13 @@ def get_finance_metrics(user, project_id=None):
         "transactions_count": transactions.count(),
     }
     if cache_key:
-        cache.set(cache_key, payload, 15)
+        cache.set(cache_key, payload, 120)
     return payload
 
 
 def get_global_dashboard_metrics(user, projects=None):
     if user and getattr(user, "is_authenticated", False):
-        cache_key = f"dash:global:{user.pk}"
+        cache_key = f"dash:global:{user.pk}:{get_user_version(user)}"
         cached = cache.get(cache_key)
         if cached is not None:
             return cached
@@ -65,7 +68,7 @@ def get_global_dashboard_metrics(user, projects=None):
     })
 
     if user and getattr(user, "is_authenticated", False):
-        cache.set(f"dash:global:{user.pk}", metrics, 15)
+        cache.set(cache_key, metrics, 120)
     return metrics
 
 

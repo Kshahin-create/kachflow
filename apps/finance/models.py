@@ -49,6 +49,7 @@ class Category(models.Model):
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, blank=True, null=True, related_name="children")
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, blank=True, null=True, related_name="categories")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -104,6 +105,8 @@ class Transfer(models.Model):
     date = models.DateField()
     notes = models.TextField(blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class CurrencyRate(models.Model):
@@ -112,6 +115,8 @@ class CurrencyRate(models.Model):
     rate = models.DecimalField(max_digits=14, decimal_places=6)
     date = models.DateField()
     source = models.CharField(max_length=80, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         unique_together = ("from_currency", "to_currency", "date")

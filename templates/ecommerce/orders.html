@@ -170,6 +170,29 @@
     </div>
   </div>
   {% endif %}
+
+  {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="text-xs font-black text-slate-500">
+        صفحة {{ page_obj.number }} من {{ page_obj.paginator.num_pages }}
+      </div>
+      <div class="flex items-center gap-2">
+        {% if page_obj.has_previous %}
+          <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+             href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
+        {% else %}
+          <span class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-400">السابق</span>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 hover:bg-slate-50"
+             href="?{% if qs %}{{ qs }}&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+        {% else %}
+          <span class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-400">التالي</span>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 </div>
 
 <script>

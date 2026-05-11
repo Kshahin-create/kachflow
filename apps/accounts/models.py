@@ -86,6 +86,7 @@ class ProjectInvitation(models.Model):
     accepted_at = models.DateTimeField(blank=True, null=True)
     expires_at = models.DateTimeField(default=default_invitation_expiry)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
         return f"{self.email} -> {self.project}"

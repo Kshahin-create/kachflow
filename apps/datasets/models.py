@@ -26,6 +26,7 @@ class DatasetField(models.Model):
     is_required = models.BooleanField(default=False)
     sample_values = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class DatasetRow(models.Model):
@@ -35,3 +36,4 @@ class DatasetRow(models.Model):
     import_batch = models.ForeignKey("imports.ImportBatch", on_delete=models.SET_NULL, blank=True, null=True)
     row_number = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)

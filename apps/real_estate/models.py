@@ -13,6 +13,7 @@ class Property(models.Model):
     leasable_area = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Unit(models.Model):
@@ -25,6 +26,8 @@ class Unit(models.Model):
     rent_per_meter = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     annual_rent = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Tenant(models.Model):
@@ -39,6 +42,8 @@ class Tenant(models.Model):
     national_id_or_cr = models.CharField(max_length=80, blank=True, null=True)
     notes = models.TextField(blank=True)
     external_payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     class Meta:
         ordering = ["name", "id"]
@@ -57,6 +62,8 @@ class Lease(models.Model):
     status = models.CharField(max_length=40, default="active")
     contract_file = models.FileField(upload_to="contracts/", blank=True, null=True)
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class RentSchedule(models.Model):
@@ -67,6 +74,8 @@ class RentSchedule(models.Model):
     remaining_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     status = models.CharField(max_length=40, default="due")
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Collection(models.Model):
@@ -77,6 +86,8 @@ class Collection(models.Model):
     account = models.ForeignKey("finance.Account", on_delete=models.SET_NULL, blank=True, null=True)
     payment_method = models.CharField(max_length=80, blank=True)
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class Installment(models.Model):
@@ -90,6 +101,8 @@ class Installment(models.Model):
     related_object_type = models.CharField(max_length=120, blank=True)
     related_object_id = models.CharField(max_length=80, blank=True)
     notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class MaintenanceCost(models.Model):
@@ -100,6 +113,8 @@ class MaintenanceCost(models.Model):
     category = models.CharField(max_length=120, blank=True)
     description = models.TextField(blank=True)
     supplier = models.CharField(max_length=180, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
 
 class IndustrialBuilding(models.Model):
